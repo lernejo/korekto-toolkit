@@ -16,10 +16,12 @@
         <maven.compiler.source>15</maven.compiler.source>
         <maven.compiler.target>15</maven.compiler.target>
 
-        <kotlin.compiler.jvmTarget>12</kotlin.compiler.jvmTarget>
+        <kotlin.compiler.jvmTarget>15</kotlin.compiler.jvmTarget>
         <kotlin.version>1.4.20</kotlin.version>
 
+        <slf4j.version>1.7.30</slf4j.version>
         <snakeyaml.version>1.27</snakeyaml.version>
+        <jgit.version>5.9.0.202009080501-r</jgit.version>
 
         <junit-jupiter.version>5.7.0</junit-jupiter.version>
         <assertj-core.version>3.17.2</assertj-core.version>
@@ -63,9 +65,19 @@
         </dependency>
 
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>${snakeyaml.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>${jgit.version}</version>
         </dependency>
 
         <!-- Test dependencies -->
