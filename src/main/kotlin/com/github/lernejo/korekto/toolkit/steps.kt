@@ -10,6 +10,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
+import java.util.*
 
 class CloneStep : GradingStep {
     override fun run(configuration: GradingConfiguration, context: GradingContext) {
@@ -21,11 +22,13 @@ class CloneStep : GradingStep {
     }
 }
 
+data class Payload(val action: String, val details: GradeDetails)
+
 class SendStep : GradingStep {
     private val logger = LoggerFactory.getLogger(SendStep::class.java)
 
     override fun run(configuration: GradingConfiguration, context: GradingContext) {
-        val content = Gson().toJson(context.gradeDetails)
+        val content = Gson().toJson(Payload("grading", context.gradeDetails))
         val client = HttpClient.newHttpClient()
         val requestBuilder = HttpRequest.newBuilder()
             .uri(URI.create(configuration.callbackUrl))
@@ -34,6 +37,10 @@ class SendStep : GradingStep {
         if (configuration.callbackPassword != null) {
             requestBuilder.header("Authorization", configuration.callbackPassword)
         }
+        requestBuilder.header("Content-Type", "application/json")
+        requestBuilder.header("X-GitHub-Event", "korekto")
+        requestBuilder.header("X-GitHub-Delivery", UUID.randomUUID().toString())
+
         val request = requestBuilder.build()
 
         var error: Throwable? = null
