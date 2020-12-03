@@ -15,6 +15,10 @@ class CloneStep : GradingStep {
     override fun run(configuration: GradingConfiguration, context: GradingContext) {
         context.exercise = ExerciseCloner(Paths.get("target/repositories")).gitClone(configuration.repoUrl)
     }
+
+    override fun close(context: GradingContext) {
+        context.exercise?.close()
+    }
 }
 
 class SendStep : GradingStep {

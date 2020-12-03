@@ -2,6 +2,8 @@ package com.github.lernejo.korekto.toolkit
 
 import com.github.lernejo.korekto.toolkit.misc.HumanReadableDuration.toString
 import org.slf4j.LoggerFactory
+import java.util.*
+import kotlin.collections.ArrayList
 
 class GradingJob(private val steps: List<NamedStep> = emptyList()) {
     private val logger = LoggerFactory.getLogger(GradingJob::class.java)
@@ -11,17 +13,20 @@ class GradingJob(private val steps: List<NamedStep> = emptyList()) {
 
     fun addSendStep() = addStep("sending results", SendStep())
 
+    @JvmOverloads
     fun run(configuration: GradingConfiguration = GradingConfiguration()): Int {
         val start = System.currentTimeMillis()
         val context = GradingContext()
+        val deque: Deque<(GradingContext) -> Unit> = LinkedList()
         var exitCode = 0
         for (namedStep in steps) {
             logger.info("Start ${namedStep.name}...")
             val stepStart = System.currentTimeMillis()
             try {
                 namedStep.action.run(configuration, context)
+                deque.addFirst { namedStep.action.close(it) }
             } catch (e: RuntimeException) {
-                if(e.cause == null) {
+                if (e.cause == null) {
                     logger.error(e.message)
                 } else {
                     logger.error(e.message, e)
@@ -32,6 +37,9 @@ class GradingJob(private val steps: List<NamedStep> = emptyList()) {
                 logger.info("Done ${namedStep.name} in " + toString(System.currentTimeMillis() - stepStart))
             }
         }
+        while (deque.peekFirst() != null) {
+            deque.pollFirst().invoke(context)
+        }
 
         logger.info("Total in " + toString(System.currentTimeMillis() - start))
 
@@ -41,12 +49,15 @@ class GradingJob(private val steps: List<NamedStep> = emptyList()) {
 
 fun interface GradingStep {
     fun run(configuration: GradingConfiguration, context: GradingContext)
+
+    @JvmDefault
+    fun close(context: GradingContext) {
+    }
 }
 
 class GradingConfiguration(val repoUrl: String = System.getenv("REPO_URL"),
                            val callbackUrl: String = System.getenv("CALLBACK_URL"),
-                           val callbackPassword: String? = System.getenv("CALLBACK_PASSWORD")) {
-}
+                           val callbackPassword: String? = System.getenv("CALLBACK_PASSWORD"))
 
 class GradingContext {
     var exercise: Exercise? = null
