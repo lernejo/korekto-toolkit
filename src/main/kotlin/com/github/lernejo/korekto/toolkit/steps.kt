@@ -35,7 +35,8 @@ class SendStep : GradingStep {
             .POST(HttpRequest.BodyPublishers.ofString(content, StandardCharsets.UTF_8))
 
         if (configuration.callbackPassword != null) {
-            requestBuilder.header("Authorization", configuration.callbackPassword)
+            val encodedPassword = Base64.getEncoder().encodeToString(configuration.callbackPassword.toByteArray(StandardCharsets.UTF_8))
+            requestBuilder.header("Authorization", encodedPassword)
         }
         requestBuilder.header("Content-Type", "application/json")
         requestBuilder.header("X-GitHub-Event", "korekto")
