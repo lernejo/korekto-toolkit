@@ -2,6 +2,8 @@ package com.github.lernejo.korekto.toolkit
 
 import com.github.lernejo.korekto.toolkit.misc.HumanReadableDuration.toString
 import org.slf4j.LoggerFactory
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -12,6 +14,7 @@ class GradingJob(private val steps: List<NamedStep> = emptyList()) {
     fun addStep(name: String, step: GradingStep) = GradingJob(steps.plus(NamedStep(name, step)))
 
     fun addSendStep() = addStep("sending results", SendStep())
+    fun addStoreResultsLocallyStep() = addStep("writing results", StoreResultsLocally())
 
     @JvmOverloads
     fun run(configuration: GradingConfiguration = GradingConfiguration()): Int {
@@ -55,9 +58,12 @@ fun interface GradingStep {
     }
 }
 
-class GradingConfiguration(val repoUrl: String = System.getenv("REPO_URL"),
-                           val callbackUrl: String = System.getenv("CALLBACK_URL"),
-                           val callbackPassword: String? = System.getenv("CALLBACK_PASSWORD"))
+class GradingConfiguration(
+    val repoUrl: String = System.getenv("REPO_URL"),
+    val callbackUrl: String = System.getenv("CALLBACK_URL"),
+    val callbackPassword: String? = System.getenv("CALLBACK_PASSWORD"),
+    val workspace: Path = Paths.get("target/repositories")
+)
 
 class GradingContext {
     var exercise: Exercise? = null

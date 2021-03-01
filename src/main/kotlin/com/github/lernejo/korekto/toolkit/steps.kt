@@ -9,12 +9,13 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 
 class CloneStep : GradingStep {
     override fun run(configuration: GradingConfiguration, context: GradingContext) {
-        context.exercise = ExerciseCloner(Paths.get("target/repositories")).gitClone(configuration.repoUrl)
+        context.exercise = ExerciseCloner(configuration.workspace).gitClone(configuration.repoUrl)
     }
 
     override fun close(context: GradingContext) {
@@ -23,6 +24,18 @@ class CloneStep : GradingStep {
 }
 
 data class Payload(val action: String, val details: GradeDetails)
+
+class StoreResultsLocally : GradingStep {
+    override fun run(configuration: GradingConfiguration, context: GradingContext) {
+        val content = Gson().toJson(Payload("grading", context.gradeDetails))
+        val outputFilePath = configuration.workspace.resolve(context.exercise?.name + ".json")
+        if (!Files.exists(outputFilePath.parent)) {
+            Files.createDirectories(outputFilePath.parent);
+        }
+
+        outputFilePath.toFile().writeText(content)
+    }
+}
 
 class SendStep : GradingStep {
     private val logger = LoggerFactory.getLogger(SendStep::class.java)
@@ -35,7 +48,8 @@ class SendStep : GradingStep {
             .POST(HttpRequest.BodyPublishers.ofString(content, StandardCharsets.UTF_8))
 
         if (configuration.callbackPassword != null) {
-            val encodedPassword = Base64.getEncoder().encodeToString(configuration.callbackPassword.toByteArray(StandardCharsets.UTF_8))
+            val encodedPassword =
+                Base64.getEncoder().encodeToString(configuration.callbackPassword.toByteArray(StandardCharsets.UTF_8))
             requestBuilder.header("Authorization", encodedPassword)
         }
         requestBuilder.header("Content-Type", "application/json")
@@ -51,14 +65,19 @@ class SendStep : GradingStep {
             if (statusCode < 200 || statusCode > 299) {
                 val body = response.body().trim { it <= ' ' }
                 val bodyMessage = if (body.isNotEmpty()) "\nBody:\n$body" else " (empty body)"
-                error = java.lang.RuntimeException("Failed to send grade to callback url ${configuration.callbackUrl}  / HTTP code: $statusCode$bodyMessage")
+                error =
+                    java.lang.RuntimeException("Failed to send grade to callback url ${configuration.callbackUrl}  / HTTP code: $statusCode$bodyMessage")
             } else {
                 logger.info("Successfully sent results, HTTP code: $statusCode")
             }
         } catch (e: ConnectException) {
-            error = java.lang.RuntimeException("Failed to send grade to callback url ${configuration.callbackUrl}  / Message: ${e.message}")
+            error =
+                java.lang.RuntimeException("Failed to send grade to callback url ${configuration.callbackUrl}  / Message: ${e.message}")
         } catch (e: Exception) {
-            error = java.lang.RuntimeException("Failed to send grade to callback url ${configuration.callbackUrl}  / Message: ${e.message}", e)
+            error = java.lang.RuntimeException(
+                "Failed to send grade to callback url ${configuration.callbackUrl}  / Message: ${e.message}",
+                e
+            )
         }
         if (error != null) {
             logger.info("Payload:\n$content")
