@@ -1,9 +1,6 @@
 package com.github.lernejo.korekto.toolkit.thirdparty.markdown
 
-import org.commonmark.node.AbstractVisitor
-import org.commonmark.node.Heading
-import org.commonmark.node.ListItem
-import org.commonmark.node.Text
+import org.commonmark.node.*
 import java.util.*
 
 internal class BulletPointVisitor : AbstractVisitor() {
@@ -33,5 +30,20 @@ internal class TitleVisitor(private val matchingLevel: Int) : AbstractVisitor() 
         if (heading.level == matchingLevel && heading.firstChild is Text) {
             titles.add(Title(heading.level, (heading.firstChild as Text).literal))
         }
+    }
+}
+
+internal class BadgeVisitor : AbstractVisitor() {
+    val badges: MutableList<Badge> = ArrayList()
+    var linkDest: String? = null;
+
+    override fun visit(link: org.commonmark.node.Link) {
+        linkDest = link.destination
+        super.visit(link)
+        linkDest = null
+    }
+
+    override fun visit(image: Image) {
+        badges.add(Badge(image.destination, linkDest))
     }
 }

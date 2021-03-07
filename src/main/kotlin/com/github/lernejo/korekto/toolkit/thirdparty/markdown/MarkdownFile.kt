@@ -47,6 +47,12 @@ class MarkdownFile(path: Path) {
             root!!.accept(visitor)
             return visitor.links
         }
+    val badges: List<Badge>
+        get() {
+            val visitor = BadgeVisitor()
+            root!!.accept(visitor)
+            return visitor.badges
+        }
 
     companion object {
         private val PARSER = Parser.builder().build()
