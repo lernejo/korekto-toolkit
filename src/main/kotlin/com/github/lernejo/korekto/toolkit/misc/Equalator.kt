@@ -18,8 +18,8 @@ class Equalator(private val permissiveness: Int) {
             return false
         }
         when (o1) {
-            is CharSequence -> {
-                return compareCharSequence(o1, o2 as CharSequence)
+            is String -> {
+                return compareCharSequence(o1.toLowerCase(), (o2 as String).toLowerCase())
             }
             is Comparable<*> -> {
                 return compareComparable<Any>(o1 as Comparable<Any>, o2)
