@@ -1,5 +1,6 @@
 package com.github.lernejo.korekto.toolkit.thirdparty.git
 
+import com.github.lernejo.korekto.toolkit.WarningException
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.api.errors.GitAPIException
@@ -54,9 +55,9 @@ object GitRepository {
             LOGGER.debug("Cloning in: " + git.repository.directory)
             git
         } catch (e: GitAPIException) {
-            throw RuntimeException("Unable to clone in " + path.toAbsolutePath(), e)
+            throw WarningException("Unable to clone in " + path.toAbsolutePath(), e)
         } catch (e: JGitInternalException) {
-            throw RuntimeException("Unable to clone in " + path.toAbsolutePath(), e)
+            throw WarningException("Unable to clone in " + path.toAbsolutePath(), e)
         }
     }
 
