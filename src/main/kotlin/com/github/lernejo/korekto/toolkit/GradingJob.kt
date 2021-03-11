@@ -7,7 +7,10 @@ import java.nio.file.Paths
 import java.util.*
 import kotlin.collections.ArrayList
 
-class GradingJob(private val steps: List<NamedStep> = emptyList()) {
+class GradingJob(
+    private val steps: List<NamedStep> = emptyList(),
+    private val onErrorListeners: List<OnErrorListener> = emptyList()
+) {
     private val logger = LoggerFactory.getLogger(GradingJob::class.java)
 
     fun addCloneStep() = addStep("cloning", CloneStep())
@@ -15,6 +18,7 @@ class GradingJob(private val steps: List<NamedStep> = emptyList()) {
 
     fun addSendStep() = addStep("sending results", SendStep())
     fun addStoreResultsLocallyStep() = addStep("writing results", StoreResultsLocally())
+    fun addErrorListener(errorListener: OnErrorListener) = GradingJob(steps, onErrorListeners.plus(errorListener))
 
     @JvmOverloads
     fun run(configuration: GradingConfiguration = GradingConfiguration()): Int {
@@ -29,10 +33,18 @@ class GradingJob(private val steps: List<NamedStep> = emptyList()) {
                 namedStep.action.run(configuration, context)
                 deque.addFirst { namedStep.action.close(it) }
             } catch (e: RuntimeException) {
-                if (e.cause == null) {
-                    logger.error(e.message)
-                } else {
-                    logger.error(e.message, e)
+                onErrorListeners.forEach { it.onError(e, configuration, context) }
+                when (e) {
+                    is WarningException -> if (e.cause == null) {
+                        logger.warn(e.message)
+                    } else {
+                        logger.warn(e.message, e)
+                    }
+                    else -> if (e.cause == null) {
+                        logger.error(e.message)
+                    } else {
+                        logger.error(e.message, e)
+                    }
                 }
                 exitCode = 1
                 break
@@ -57,6 +69,12 @@ fun interface GradingStep {
     fun close(context: GradingContext) {
     }
 }
+
+fun interface OnErrorListener {
+    fun onError(ex: RuntimeException, configuration: GradingConfiguration, context: GradingContext)
+}
+
+class WarningException(message: String, cause: java.lang.Exception) : RuntimeException(message, cause)
 
 class GradingConfiguration(
     val repoUrl: String = System.getenv("REPO_URL"),
