@@ -26,6 +26,7 @@
         <commonmark.version>0.17.0</commonmark.version>
         <github-api.version>1.123</github-api.version>
         <okhttp.version>4.9.1</okhttp.version>
+        <maven-invoker.version>3.1.0</maven-invoker.version>
 
         <junit-jupiter.version>5.7.0</junit-jupiter.version>
         <assertj-core.version>3.17.2</assertj-core.version>
@@ -103,6 +104,11 @@
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
             <version>${okhttp.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-invoker</artifactId>
+            <version>${maven-invoker.version}</version>
         </dependency>
 
         <!-- Test dependencies -->
