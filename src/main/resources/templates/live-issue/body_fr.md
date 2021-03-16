@@ -1,0 +1,12 @@
+# Exercice commencé
+Votre note est de **[(${{grade}})]**/[(${{maxGrade}})].  
+
+## Détail[# th:each="part : ${gradeParts}"]
+* [(${part.id})]: [(${{part.grade}})]/[(${{part.maxGrade}})][# th:each="comment : ${part.comments}"]
+    * [(${comment})]
+[/][/]
+
+
+Vous avez jusqu'à [(${deadline})] pour améliorer votre note.
+
+*Analyse effectuée à [(${now})].*

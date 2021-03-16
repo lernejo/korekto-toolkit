@@ -4,6 +4,7 @@ import com.github.lernejo.korekto.toolkit.misc.HumanReadableDuration.toString
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.Instant
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -15,6 +16,8 @@ class GradingJob(
 
     fun addCloneStep() = addStep("cloning", CloneStep())
     fun addStep(name: String, step: GradingStep) = GradingJob(steps.plus(NamedStep(name, step)))
+    fun addUpsertGitHubIssuesStep(locale: Locale, deadline: Instant) =
+        addStep("upsert GH issues", UpsertGitHubGradingIssues(locale, deadline))
 
     fun addSendStep() = addStep("sending results", SendStep())
     fun addStoreResultsLocallyStep() = addStep("writing results", StoreResultsLocally())
@@ -88,8 +91,11 @@ class GradingContext {
     val gradeDetails = GradeDetails()
 }
 
-data class GradeDetails(val parts: MutableList<GradePart> = ArrayList())
+data class GradeDetails(val parts: MutableList<GradePart> = ArrayList()) {
+    fun grade() = parts.map { p -> p.grade }.sum()
+    fun maxGrade() = parts.map { p -> p.maxGrade }.sum()
+}
 
-data class GradePart(val id: String, val grade: Double, val comments: List<String>)
+data class GradePart(val id: String, val grade: Double, val maxGrade: Double, val comments: List<String>)
 
 data class NamedStep(val name: String, val action: GradingStep)

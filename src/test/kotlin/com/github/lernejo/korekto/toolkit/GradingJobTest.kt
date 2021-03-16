@@ -12,9 +12,23 @@ internal class GradingJobTest {
         val holder = AtomicReference<GradeDetails>()
         val exitCode = GradingJob()
             .addCloneStep()
-            .addStep("test_1") { conf, context -> context.gradeDetails.parts.add(GradePart("test_1", 3.0, listOf("comment1", "comment2"))); holder.set(context.gradeDetails) }
+            .addStep("test_1") { conf, context ->
+                context.gradeDetails.parts.add(
+                    GradePart(
+                        "test_1",
+                        3.0,
+                        7.0,
+                        listOf("comment1", "comment2")
+                    )
+                ); holder.set(context.gradeDetails)
+            }
             .addSendStep()
-            .run(GradingConfiguration(repoUrl = toGitHubHttps("lernejo/korekto-toolkit"), callbackUrl = "http://localhost:80/service"))
+            .run(
+                GradingConfiguration(
+                    repoUrl = toGitHubHttps("lernejo/korekto-toolkit"),
+                    callbackUrl = "http://localhost:80/service"
+                )
+            )
 
         assertThat(holder.get().parts).hasSize(1)
         assertThat(exitCode).isEqualTo(1);
