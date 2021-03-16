@@ -123,7 +123,7 @@ class UpsertGitHubGradingIssues(private val locale: Locale, private val deadline
                 .findFirst()
 
             if (existingIssue.isEmpty) {
-                val title = titlePrefix + I18nTemplateResolver().process("gg-issue/title", templateContext, locale).trim()
+                val title = titlePrefix + " " + I18nTemplateResolver().process("gg-issue/title", templateContext, locale).trim()
                 val body = I18nTemplateResolver().process("gg-issue/body.md", templateContext, locale).trim()
                 val ghIssue = ghContext.repository.createIssue(title).body(body).create()
                 logger.info("Opened GG issue: " + ghIssue.htmlUrl)
@@ -146,7 +146,7 @@ class UpsertGitHubGradingIssues(private val locale: Locale, private val deadline
             "deadline" to deadline(context),
             "now" to Instant.now()
         )
-        val title = dailyTitlePrefix + I18nTemplateResolver().process("live-issue/title", templateContext, locale).trim()
+        val title = dailyTitlePrefix + " " + I18nTemplateResolver().process("live-issue/title", templateContext, locale).trim()
         val body = I18nTemplateResolver().process("live-issue/body.md", templateContext, locale).trim()
         val existingDailyIssue = issues.stream()
             .filter { i: GHIssue -> i.title.startsWith(dailyTitlePrefix) }
