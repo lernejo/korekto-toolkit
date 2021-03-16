@@ -25,12 +25,22 @@ object GitRepository {
     fun extractCredParts(uri: String): Creds {
         val uriCredMatcher = URI_WITH_CRED_PATTERN.matcher(uri)
         val credPresent = uriCredMatcher.matches()
-        val uriWithoutCred = if (credPresent) uriCredMatcher.group("protocol") + uriCredMatcher.group("hostAndMore") else uri
+
+        val (hostAndMore, uriWithoutCred) = if (credPresent) {
+            val ham = uriCredMatcher.group("hostAndMore")
+            Pair(ham, uriCredMatcher.group("protocol") + ham)
+        } else {
+            Pair("", uri)
+        }
 
         if (credPresent) {
             val parts = uriCredMatcher.group("cred").split(":")
             if (parts.size == 1) {
-                return Creds(uriWithoutCred, parts[0], "")
+                val token = parts[0]
+                if (hostAndMore.startsWith("github.com")) {
+                    System.setProperty("github_token", token)
+                }
+                return Creds(uriWithoutCred, token, "")
             } else {
                 return Creds(uriWithoutCred, parts[0], parts[1])
             }
