@@ -85,7 +85,7 @@ class GradingJob(
         val deque: Deque<(GradingContext) -> Unit> = LinkedList()
         var exitCode = 0
         for (namedStep in steps) {
-            logger.info("Start ${namedStep.name}...")
+            logger.debug("Start ${namedStep.name}...")
             val stepStart = System.currentTimeMillis()
             try {
                 namedStep.action.run(configuration, context)
@@ -107,7 +107,7 @@ class GradingJob(
                 exitCode = 1
                 break
             } finally {
-                logger.info("Done ${namedStep.name} in " + toString(System.currentTimeMillis() - stepStart))
+                logger.debug("Done ${namedStep.name} in " + toString(System.currentTimeMillis() - stepStart))
             }
         }
         while (deque.peekFirst() != null) {
