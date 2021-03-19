@@ -13,7 +13,8 @@ import java.util.stream.Stream
 class I18nTemplateResolver {
     fun process(templateName: String, context: Map<String, Any>, locale: Locale): String {
         val ic = ExpressionContext(templateEngine.configuration, locale, context)
-        return templateEngine.process(TemplateSpec(loadTemplate(templateName, locale), TemplateMode.TEXT), ic)
+        val templateMode = if (templateName.endsWith(".xml")) TemplateMode.XML else TemplateMode.TEXT
+        return templateEngine.process(TemplateSpec(loadTemplate(templateName, locale), templateMode), ic)
     }
 
     private fun loadTemplate(templateName: String, locale: Locale): String {
@@ -25,7 +26,8 @@ class I18nTemplateResolver {
         }
         return Stream.of(locale, Locale.getDefault())
             .map { it.language }
-            .map { I18nTemplateResolver::class.java.classLoader.getResourceAsStream("templates/${prefix}_$it$extension") }
+            .map { if (it.isNotEmpty()) "_$it" else it }
+            .map { I18nTemplateResolver::class.java.classLoader.getResourceAsStream("templates/${prefix}$it$extension") }
             .filter { it != null }
             .map { inputStream -> inputStream.use { Loader.toString(it) } }
             .findFirst()

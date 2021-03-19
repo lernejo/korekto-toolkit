@@ -185,13 +185,14 @@ class UpsertGitHubGradingIssues(
                     }
                 }
             }
+            if (dryRun) {
+                logger.info("Should have updated\n\t$title\n\n\t$body")
+            }
         }
         if (grade == maxGrade && GHIssueState.OPEN == ghIssue?.state) {
             ghIssue.close()
         } else {
-            if (dryRun) {
-                logger.info("Should have updated\n\t$title\n\n\t$body")
-            } else {
+            if (!dryRun) {
                 logger.info("Upserted Live issue: " + ghIssue!!.htmlUrl)
             }
         }

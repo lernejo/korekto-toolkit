@@ -1,6 +1,7 @@
 package com.github.lernejo.korekto.toolkit
 
 import com.github.lernejo.korekto.toolkit.NatureFactory.Companion.lookupNatures
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 import java.util.function.Consumer
@@ -22,6 +23,16 @@ class Exercise(val name: String, val root: Path) : AutoCloseable {
 
     override fun close() {
         natures.values.forEach(Consumer { obj: Nature<*> -> obj.finalize() })
+    }
+
+    fun writeFile(relativePath: String, content: String): Path {
+        val outputFilePath = root.resolve(relativePath)
+        if (!Files.exists(outputFilePath.parent)) {
+            Files.createDirectories(outputFilePath.parent)
+        }
+
+        outputFilePath.toFile().writeText(content)
+        return outputFilePath.toAbsolutePath()
     }
 }
 
