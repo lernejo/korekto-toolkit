@@ -2,6 +2,7 @@ package com.github.lernejo.korekto.toolkit
 
 import com.github.lernejo.korekto.toolkit.misc.AsciiHistogram
 import com.github.lernejo.korekto.toolkit.misc.HumanReadableDuration.toString
+import com.github.lernejo.korekto.toolkit.misc.Maths
 import com.github.lernejo.korekto.toolkit.misc.OS
 import com.github.lernejo.korekto.toolkit.misc.Processes.launch
 import org.slf4j.LoggerFactory
@@ -24,8 +25,10 @@ class GradingJob(
     fun addStep(name: String, step: GradingStep) = GradingJob(steps.plus(NamedStep(name, step)), onErrorListeners)
 
     fun addCloneStep() = addStep("cloning", CloneStep())
-    fun addUpsertGitHubIssuesStep(locale: Locale, deadline: (GradingContext) -> Instant) =
-        addStep("upsert GH issues", UpsertGitHubGradingIssues(locale, deadline))
+
+    @JvmOverloads
+    fun addUpsertGitHubIssuesStep(locale: Locale, deadline: (GradingContext) -> Instant, dryRun: Boolean = false) =
+        addStep("upsert GH issues", UpsertGitHubGradingIssues(locale, deadline, dryRun))
 
     fun addSendStep() = addStep("sending results", SendStep())
     fun addStoreResultsLocallyStep() = addStep("writing results", StoreResultsLocally())
@@ -148,8 +151,8 @@ class GradingContext {
 }
 
 data class GradeDetails(val parts: MutableList<GradePart> = ArrayList()) {
-    fun grade() = parts.map { p -> p.grade }.sum()
-    fun maxGrade() = parts.map { p -> p.maxGrade }.sum()
+    fun grade() = Maths.round(parts.map { p -> p.grade }.sum(), 2)
+    fun maxGrade() = Maths.round(parts.map { p -> p.maxGrade }.sum(), 2)
 }
 
 data class GradePart(val id: String, val grade: Double, val maxGrade: Double, val comments: List<String>)

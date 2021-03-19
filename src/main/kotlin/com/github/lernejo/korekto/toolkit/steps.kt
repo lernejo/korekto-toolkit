@@ -91,7 +91,11 @@ class SendStep : GradingStep {
     }
 }
 
-class UpsertGitHubGradingIssues(private val locale: Locale, private val deadline: (GradingContext) -> Instant) : GradingStep {
+class UpsertGitHubGradingIssues(
+    private val locale: Locale,
+    private val deadline: (GradingContext) -> Instant,
+    private val dryRun: Boolean = false
+) : GradingStep {
 
     private val logger = LoggerFactory.getLogger(UpsertGitHubGradingIssues::class.java)
 
@@ -123,10 +127,15 @@ class UpsertGitHubGradingIssues(private val locale: Locale, private val deadline
                 .findFirst()
 
             if (existingIssue.isEmpty) {
-                val title = titlePrefix + " " + I18nTemplateResolver().process("gg-issue/title", templateContext, locale).trim()
+                val title =
+                    titlePrefix + " " + I18nTemplateResolver().process("gg-issue/title", templateContext, locale).trim()
                 val body = I18nTemplateResolver().process("gg-issue/body.md", templateContext, locale).trim()
-                val ghIssue = ghContext.repository.createIssue(title).body(body).create()
-                logger.info("Opened GG issue: " + ghIssue.htmlUrl)
+                if (dryRun) {
+                    logger.info("Should have created\n\t$title\n\n\t$body")
+                } else {
+                    val ghIssue = ghContext.repository.createIssue(title).body(body).create()
+                    logger.info("Opened GG issue: " + ghIssue.htmlUrl)
+                }
             }
         }
     }
@@ -146,33 +155,45 @@ class UpsertGitHubGradingIssues(private val locale: Locale, private val deadline
             "deadline" to deadline(context),
             "now" to Instant.now()
         )
-        val title = dailyTitlePrefix + " " + I18nTemplateResolver().process("live-issue/title", templateContext, locale).trim()
+        val title =
+            dailyTitlePrefix + " " + I18nTemplateResolver().process("live-issue/title", templateContext, locale).trim()
         val body = I18nTemplateResolver().process("live-issue/body.md", templateContext, locale).trim()
         val existingDailyIssue = issues.stream()
             .filter { i: GHIssue -> i.title.startsWith(dailyTitlePrefix) }
             .findFirst()
-        val ghIssue: GHIssue
+        val ghIssue: GHIssue?
         if (existingDailyIssue.isEmpty) {
-            ghIssue = ghContext.repository.createIssue(title).body(body).create()
+            ghIssue = if (dryRun) {
+                logger.info("Should have created\n\t$title\n\n\t$body")
+                null
+            } else {
+                ghContext.repository.createIssue(title).body(body).create()
+            }
         } else {
             if (existingDailyIssue.get().state == GHIssueState.CLOSED && grade != maxGrade) {
                 ghIssue = ghContext.repository.createIssue(title).body(body).create()
             } else {
                 ghIssue = existingDailyIssue.get()
                 if (ghIssue.state != GHIssueState.CLOSED) {
-                    if (ghIssue.body != body) {
-                        ghIssue.body = body
-                    }
-                    if (ghIssue.title != title) {
-                        ghIssue.title = title
+                    if (!dryRun) {
+                        if (ghIssue.body != body) {
+                            ghIssue.body = body
+                        }
+                        if (ghIssue.title != title) {
+                            ghIssue.title = title
+                        }
                     }
                 }
             }
         }
-        if (grade == maxGrade && GHIssueState.CLOSED != ghIssue.state) {
+        if (grade == maxGrade && GHIssueState.OPEN == ghIssue?.state) {
             ghIssue.close()
         } else {
-            logger.info("Upserted Live issue: " + ghIssue.htmlUrl)
+            if (dryRun) {
+                logger.info("Should have updated\n\t$title\n\n\t$body")
+            } else {
+                logger.info("Upserted Live issue: " + ghIssue!!.htmlUrl)
+            }
         }
     }
 }
