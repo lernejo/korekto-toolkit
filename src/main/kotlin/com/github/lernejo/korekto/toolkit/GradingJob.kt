@@ -40,14 +40,17 @@ class GradingJob(
     fun runBatch(
         userSlugs: List<String>,
         repoUrlBuilder: (String) -> String,
-        workspace: Path = Paths.get("target/repositories")
+        workspace: Path = Paths.get("target/repositories"),
+        resetWorkspace: Boolean = false
     ) {
         val total = userSlugs.size
         var failure = 0
         val start = System.currentTimeMillis()
         val gradesBySlug = mutableMapOf<String, Double>()
 
-        OS.CURRENT_OS?.deleteDirectoryCommand(workspace)?.let { launch(it, null) }
+        if (resetWorkspace) {
+            OS.CURRENT_OS?.deleteDirectoryCommand(workspace)?.let { launch(it, null) }
+        }
 
         for (userSlug in userSlugs) {
             val gradingConfiguration = GradingConfiguration(
