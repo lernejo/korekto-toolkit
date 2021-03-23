@@ -1,6 +1,7 @@
 package com.github.lernejo.korekto.toolkit.thirdparty.maven
 
 import com.github.lernejo.korekto.toolkit.Exercise
+import com.github.lernejo.korekto.toolkit.thirdparty.maven.invoker.CustomerInvoker
 import org.apache.maven.shared.invoker.*
 import java.io.File
 import java.io.IOException
@@ -8,17 +9,47 @@ import java.io.UncheckedIOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
+import java.util.concurrent.Callable
+import java.util.concurrent.FutureTask
 import java.util.stream.Collectors
+
+
+class MavenExecutionHandle(private val futureTask: FutureTask<MavenInvocationResult>, private val thread: Thread) :
+    AutoCloseable {
+
+    fun closeAndReturn(): MavenInvocationResult {
+        if (!thread.isInterrupted) {
+            thread.interrupt()
+            while (!futureTask.isDone) {
+                Thread.sleep(100L);
+            }
+        }
+        return futureTask.get()
+    }
+
+    override fun close() {
+        closeAndReturn()
+    }
+}
 
 object MavenExecutor {
 
     @JvmStatic
+    fun executeGoalAsync(exercise: Exercise, workspace: Path, vararg goal: String): MavenExecutionHandle {
+        val callable = Callable { executeGoal(exercise, workspace, *goal) }
+        val futureTask = FutureTask(callable)
+        val thread = Thread(futureTask)
+        thread.start()
+
+        return MavenExecutionHandle(futureTask, thread)
+    }
+
+    @JvmStatic
     fun executeGoal(exercise: Exercise, workspace: Path, vararg goal: String): MavenInvocationResult {
         val localRepositoryPath: Path = initializeLocalRepo(workspace)
-        val invoker: Invoker = DefaultInvoker()
+        val invoker: Invoker = CustomerInvoker()
         invoker.localRepositoryDirectory = localRepositoryPath.toFile()
         val outputHandler = MemoryOutputHandler()
-        invoker.setOutputHandler(outputHandler)
         val invocationRequest = DefaultInvocationRequest()
             .setPomFile(pomFilePath(exercise).toFile())
             .setBatchMode(true)
