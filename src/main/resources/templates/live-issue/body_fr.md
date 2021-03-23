@@ -2,7 +2,7 @@
 Votre note est de **[(${{grade}})]**/[(${{maxGrade}})].  
 
 ## Détail[# th:each="part : ${gradeParts}"]
-* [(${part.id})]: [(${{part.grade}})]/[(${{part.maxGrade}})][# th:each="comment : ${part.comments}"]
+* [(${part.id})]: [(${{part.grade}})][# th:if="${part.maxGrade}"]/[(${{part.maxGrade}})][/][# th:each="comment : ${part.comments}"]
     * [(${comment})]
 [/][/]
 

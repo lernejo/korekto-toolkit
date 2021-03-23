@@ -15,7 +15,7 @@ internal class I18nTemplateResolverTest {
             "maxGrade" to 5.0,
             "gradeParts" to listOf(
                 GradePart("Part 1", 0.8, 1.0, listOf("toto", "titi")),
-                GradePart("Part 2", 1.4, 2.0, listOf("truc"))
+                GradePart("Part 2", 1.4, null, listOf("truc"))
             ),
             "deadline" to Instant.ofEpochSecond(1615884854).plus(3, ChronoUnit.DAYS),
             "now" to Instant.ofEpochSecond(1615884854)
@@ -32,7 +32,7 @@ internal class I18nTemplateResolverTest {
                 * toto
                 * titi
             
-            * Part 2: 1.4/2
+            * Part 2: 1.4
                 * truc
             
             

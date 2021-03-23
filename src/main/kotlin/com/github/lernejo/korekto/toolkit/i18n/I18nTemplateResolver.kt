@@ -9,12 +9,19 @@ import org.thymeleaf.templatemode.TemplateMode
 import java.util.*
 import java.util.stream.Stream
 
+internal data class CacheKey(val templateName: String, val locale: Locale)
 
 class I18nTemplateResolver {
     fun process(templateName: String, context: Map<String, Any>, locale: Locale): String {
         val ic = ExpressionContext(templateEngine.configuration, locale, context)
         val templateMode = if (templateName.endsWith(".xml")) TemplateMode.XML else TemplateMode.TEXT
-        return templateEngine.process(TemplateSpec(loadTemplate(templateName, locale), templateMode), ic)
+        val template = templateCache.computeIfAbsent(CacheKey(templateName, locale)) { key ->
+            loadTemplate(
+                key.templateName,
+                key.locale
+            )
+        }
+        return templateEngine.process(TemplateSpec(template, templateMode), ic)
     }
 
     private fun loadTemplate(templateName: String, locale: Locale): String {
@@ -37,6 +44,12 @@ class I18nTemplateResolver {
     companion object {
         val templateEngine: TemplateEngine by lazy {
             createEngine()
+        }
+
+        private val cacheMaxSize = 15
+
+        private val templateCache = object : LinkedHashMap<CacheKey, String>() {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<CacheKey, String>) = size > cacheMaxSize
         }
 
         private fun createEngine(): TemplateEngine {

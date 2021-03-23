@@ -12,6 +12,7 @@ import java.time.Instant
 import java.util.*
 import java.util.stream.Collectors
 import kotlin.collections.ArrayList
+import kotlin.math.max
 
 class GradingJob(
     private val steps: List<NamedStep> = emptyList(),
@@ -104,11 +105,7 @@ class GradingJob(
                     } else {
                         logger.warn(e.message, e)
                     }
-                    else -> if (e.cause == null) {
-                        logger.error(e.message)
-                    } else {
-                        logger.error(e.message, e)
-                    }
+                    else -> logger.error(e.message, e)
                 }
                 exitCode = 1
                 break
@@ -154,10 +151,10 @@ class GradingContext {
 }
 
 data class GradeDetails(val parts: MutableList<GradePart> = ArrayList()) {
-    fun grade() = Maths.round(parts.map { p -> p.grade }.sum(), 2)
-    fun maxGrade() = Maths.round(parts.map { p -> p.maxGrade }.sum(), 2)
+    fun grade() = max(Maths.round(parts.map { p -> p.grade }.sum(), 2), 0.0)
+    fun maxGrade() = Maths.round(parts.map { p -> p.maxGrade?:0.0 }.sum(), 2)
 }
 
-data class GradePart(val id: String, val grade: Double, val maxGrade: Double, val comments: List<String>)
+data class GradePart(val id: String, val grade: Double, val maxGrade: Double?, val comments: List<String>)
 
 data class NamedStep(val name: String, val action: GradingStep)
