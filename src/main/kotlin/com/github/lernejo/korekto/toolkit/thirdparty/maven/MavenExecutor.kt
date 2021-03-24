@@ -51,7 +51,7 @@ object MavenExecutor {
         invoker.localRepositoryDirectory = localRepositoryPath.toFile()
         val outputHandler = MemoryOutputHandler()
         val invocationRequest = DefaultInvocationRequest()
-            .setPomFile(pomFilePath(exercise).toFile())
+            .setPomFile(PomModifier.pomFilePath(exercise).toFile())
             .setBatchMode(true)
             .setGoals(goal.toList())
             .setOutputHandler(outputHandler)
@@ -80,10 +80,6 @@ object MavenExecutor {
         } catch (e: MavenInvocationException) {
             MavenInvocationResult(MavenInvocationResult.Status.KO, logs.oneline(exercise))
         }
-    }
-
-    private fun pomFilePath(exercise: Exercise): Path {
-        return exercise.root.resolve("pom.xml")
     }
 
     private fun initializeLocalRepo(workspace: Path): Path {

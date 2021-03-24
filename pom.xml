@@ -26,6 +26,7 @@
         <commonmark.version>0.17.0</commonmark.version>
         <github-api.version>1.124</github-api.version>
         <okhttp.version>4.9.1</okhttp.version>
+        <maven.version>3.6.3</maven.version>
         <maven-invoker.version>3.1.0</maven-invoker.version>
         <thymeleaf.version>3.0.12.RELEASE</thymeleaf.version>
         <pmd.version>6.32.0</pmd.version>
@@ -108,6 +109,11 @@
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
             <version>${okhttp.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-model</artifactId>
+            <version>${maven.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.shared</groupId>
