@@ -26,9 +26,9 @@ object Ports {
     @JvmStatic
     fun isListened(port: Int): Boolean {
         try {
-            Socket("localhost", port).use { return false }
+            Socket(null as String?, port).use { return true }
         } catch (ignored: IOException) {
-            return true
+            return false
         }
     }
 }
