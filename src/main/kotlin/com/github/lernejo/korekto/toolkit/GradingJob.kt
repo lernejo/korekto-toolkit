@@ -28,7 +28,7 @@ class GradingJob(
     fun addCloneStep() = addStep("cloning", CloneStep())
 
     @JvmOverloads
-    fun addUpsertGitHubIssuesStep(locale: Locale, deadline: (GradingContext) -> Instant, dryRun: Boolean = false) =
+    fun addUpsertGitHubIssuesStep(locale: Locale, deadline: (GradingContext) -> Instant?, dryRun: Boolean = false) =
         addStep("upsert GH issues", UpsertGitHubGradingIssues(locale, deadline, dryRun))
 
     fun addSendStep() = addStep("sending results", SendStep())
@@ -131,6 +131,23 @@ fun interface GradingStep {
     }
 }
 
+interface Grader : GradingStep {
+
+    fun slugToRepoUrl(slug: String): String
+
+    fun needsWorkspaceReset() = false
+
+    fun deadline(context: GradingContext): Instant? = null
+
+    companion object {
+
+        fun load(): Grader? {
+            val serviceIterator = ServiceLoader.load(Grader::class.java).iterator()
+            return if (serviceIterator.hasNext()) serviceIterator.next() else null
+        }
+    }
+}
+
 fun interface OnErrorListener {
     fun onError(ex: RuntimeException, configuration: GradingConfiguration, context: GradingContext)
 }
@@ -152,7 +169,7 @@ class GradingContext {
 
 data class GradeDetails(val parts: MutableList<GradePart> = ArrayList()) {
     fun grade() = max(Maths.round(parts.map { p -> p.grade }.sum(), 2), 0.0)
-    fun maxGrade() = Maths.round(parts.map { p -> p.maxGrade?:0.0 }.sum(), 2)
+    fun maxGrade() = Maths.round(parts.map { p -> p.maxGrade ?: 0.0 }.sum(), 2)
 }
 
 data class GradePart(val id: String, val grade: Double, val maxGrade: Double?, val comments: List<String>)

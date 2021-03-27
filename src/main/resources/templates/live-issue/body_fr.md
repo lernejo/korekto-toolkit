@@ -7,6 +7,6 @@ Votre note est de **[(${{grade}})]**/[(${{maxGrade}})].
 [/][/]
 
 
-Vous avez jusqu'à [(${deadline})] pour améliorer votre note.
+[# th:if="${deadline}"]Vous avez jusqu'à [(${deadline})] pour améliorer votre note.
 
-*Analyse effectuée à [(${now})].*
+[/]*Analyse effectuée à [(${now})].*

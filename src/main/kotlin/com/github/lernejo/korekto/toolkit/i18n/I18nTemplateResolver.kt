@@ -12,7 +12,7 @@ import java.util.stream.Stream
 internal data class CacheKey(val templateName: String, val locale: Locale)
 
 class I18nTemplateResolver {
-    fun process(templateName: String, context: Map<String, Any>, locale: Locale): String {
+    fun process(templateName: String, context: Map<String, Any?>, locale: Locale): String {
         val ic = ExpressionContext(templateEngine.configuration, locale, context)
         val templateMode = if (templateName.endsWith(".xml")) TemplateMode.XML else TemplateMode.TEXT
         val template = templateCache.computeIfAbsent(CacheKey(templateName, locale)) { key ->

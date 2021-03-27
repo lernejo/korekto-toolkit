@@ -2,11 +2,11 @@
 Your current grade is **[(${{grade}})]**/[(${{maxGrade}})].  
 
 ## Detail[# th:each="part : ${gradeParts}"]
-* [(${part.id})]: [(${{part.grade}})]/[(${{part.maxGrade}})][# th:each="comment : ${part.comments}"]
+* [(${part.id})]: [(${{part.grade}})][# th:if="${part.maxGrade}"]/[(${{part.maxGrade}})][/][# th:each="comment : ${part.comments}"]
     * [(${comment})]
 [/][/]
 
 
-You have until [(${deadline})] to improve your grade.
+[# th:if="${deadline}"]You have until [(${deadline})] to improve your grade.
 
-*Analyzed done at [(${now})].*
+[/]*Analyze done at [(${now})].*

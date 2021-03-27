@@ -93,7 +93,7 @@ class SendStep : GradingStep {
 
 class UpsertGitHubGradingIssues(
     private val locale: Locale,
-    private val deadline: (GradingContext) -> Instant,
+    private val deadline: (GradingContext) -> Instant?,
     private val dryRun: Boolean = false
 ) : GradingStep {
 
