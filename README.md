@@ -18,7 +18,7 @@ For the generic launcher to pick up the grading service, make it implement the `
 The generic launcher has 3 modes
 
 * **container** the default mode, sends the results to the given `CALLBACK_URL`
-* **demo** by specifying a user slug (`-s mySlug`)
+* **demo** by specifying a user slug (`-s=mySlug`)
 * **group** by specifying the group mode (`-g`) and supplying a slugs file
 
 ## Built-in steps
