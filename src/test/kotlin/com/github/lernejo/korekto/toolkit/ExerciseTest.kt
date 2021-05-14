@@ -21,11 +21,16 @@ internal class ExerciseTest {
         assertThat(gitNature.withContext { it.branchNames }).contains("main")
 
         gitNature.withContext {
-            assertThat(it.meaninglessCommits()).containsExactly(
+            assertThat(it.meaninglessCommits()).contains(
                 MeaninglessCommit(
                     "b1613c7",
                     "Mavenize",
                     "1 word is too short"
+                ),
+                MeaninglessCommit(
+                    "be6b1c9",
+                    "Bump github-api from 1.127 to 1.128",
+                    "Should be squashed on 7758d73"
                 )
             )
         }
