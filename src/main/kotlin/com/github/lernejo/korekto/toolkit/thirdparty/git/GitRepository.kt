@@ -19,6 +19,7 @@ object GitRepository {
     private val LOGGER = LoggerFactory.getLogger(GitRepository::class.java)
 
     private val URI_WITH_CRED_PATTERN = Pattern.compile("(?<protocol>https?://)(?<cred>[^@]+)@(?<hostAndMore>.+)")
+    private val URI_WITHOUT_CRED_PATTERN = Pattern.compile("(?<protocol>https?://)(?<hostAndMore>.+)")
 
     data class Creds(val uriWithoutCred: String, val username: String?, val password: String?)
 
@@ -49,6 +50,20 @@ object GitRepository {
         }
     }
 
+    private fun insertToken(uri: String, token: String): String {
+        val uriCredMatcher = URI_WITH_CRED_PATTERN.matcher(uri)
+        return if (uriCredMatcher.matches()) {
+            uri
+        } else {
+            val uriMatcher = URI_WITHOUT_CRED_PATTERN.matcher(uri)
+            if (uriMatcher.matches()) {
+                uriMatcher.group("protocol") + token + "@" + uriMatcher.group("hostAndMore")
+            } else {
+                uri
+            }
+        }
+    }
+
     @JvmStatic
     fun clone(uri: String, path: Path): Git {
         val creds = extractCredParts(uri)
@@ -57,8 +72,13 @@ object GitRepository {
             val cloneCommand = Git.cloneRepository()
                 .setURI(uri)
                 .setDirectory(path.toFile())
+            val token = System.getProperty("github_token");
             if (creds.username != null) {
                 cloneCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(creds.username, creds.password))
+            } else if (token != null) {
+                cloneCommand
+                    .setURI(insertToken(uri, token))
+                    .setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
             }
             val git = cloneCommand
                 .call()
@@ -95,7 +115,12 @@ object GitRepository {
 
     @JvmStatic
     fun forcePull(git: Git, uri: String) {
-        val creds = extractCredParts(uri)
+        val token = System.getProperty("github_token");
+        val creds = if (token != null) {
+            Creds(uri, token, "")
+        } else {
+            extractCredParts(uri)
+        }
 
         try {
             try {
