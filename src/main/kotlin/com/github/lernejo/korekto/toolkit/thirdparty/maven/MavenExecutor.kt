@@ -8,7 +8,6 @@ import java.io.IOException
 import java.io.UncheckedIOException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.FutureTask
 import java.util.stream.Collectors
@@ -36,7 +35,8 @@ object MavenExecutor {
 
     @JvmStatic
     fun executeGoalAsync(exercise: Exercise, workspace: Path, vararg goal: String): MavenExecutionHandle {
-        val callable = Callable { executeGoal(exercise, workspace, *goal) }
+        val logs = MemoryOutputHandler()
+        val callable = Callable { executeGoal(exercise, workspace, logs, *goal) }
         val futureTask = FutureTask(callable)
         val thread = Thread(futureTask)
         thread.start()
@@ -45,11 +45,23 @@ object MavenExecutor {
     }
 
     @JvmStatic
-    fun executeGoal(exercise: Exercise, workspace: Path, vararg goal: String): MavenInvocationResult {
+    fun executeGoal(
+        exercise: Exercise,
+        workspace: Path,
+        vararg goal: String
+    ): MavenInvocationResult = executeGoal(exercise, workspace, MemoryOutputHandler(), *goal)
+
+    @JvmStatic
+    fun executeGoal(
+        exercise: Exercise,
+        workspace: Path,
+        outputHandler: MemoryOutputHandler = MemoryOutputHandler(),
+        vararg goal: String
+    ): MavenInvocationResult {
         val localRepositoryPath: Path = initializeLocalRepo(workspace)
         val invoker: Invoker = CustomerInvoker()
         invoker.localRepositoryDirectory = localRepositoryPath.toFile()
-        val outputHandler = MemoryOutputHandler()
+        //val outputHandler = MemoryOutputHandler()
         val invocationRequest = DefaultInvocationRequest()
             .setPomFile(PomModifier.pomFilePath(exercise).toFile())
             .setBatchMode(true)
@@ -108,8 +120,10 @@ class MavenInvocationResult(val status: Status, val output: String) {
     }
 }
 
-internal class MemoryOutputHandler : InvocationOutputHandler {
-    val lines: MutableList<String> = ArrayList()
+class MemoryOutputHandler : InvocationOutputHandler {
+    @Volatile
+    var lines: MutableList<String> = ArrayList()
+
     override fun consumeLine(line: String) {
         lines.add(line)
     }
