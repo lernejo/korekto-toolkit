@@ -25,7 +25,7 @@
         <picocli.version>4.6.1</picocli.version>
         <jgit.version>5.11.1.202105131744-r</jgit.version>
         <commonmark.version>0.17.0</commonmark.version>
-        <github-api.version>1.130</github-api.version>
+        <github-api.version>1.131</github-api.version>
         <okhttp.version>4.9.1</okhttp.version>
         <maven.version>3.8.1</maven.version>
         <maven-invoker.version>3.1.0</maven-invoker.version>
