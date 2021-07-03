@@ -16,8 +16,8 @@ object PomModifier {
 
     @JvmStatic
     fun addDependency(exercise: Exercise, groupId: String, artifactId: String, version: String) {
-        val pomFilePath = pomFilePath(exercise)
-        val model: Model = readModel(pomFilePath)
+        val pomFilePath = MavenReader.pomFilePath(exercise)
+        val model: Model = MavenReader.readModel(pomFilePath)
 
         val alreadySet = model.dependencies.any { d -> d.groupId == groupId && d.artifactId == artifactId }
 
@@ -33,8 +33,8 @@ object PomModifier {
 
     @JvmStatic
     fun addRepository(exercise: Exercise, id: String, url: String) {
-        val pomFilePath = pomFilePath(exercise)
-        val model: Model = readModel(pomFilePath)
+        val pomFilePath = MavenReader.pomFilePath(exercise)
+        val model: Model = MavenReader.readModel(exercise)
 
         val alreadySet = model.repositories.any { r -> r.url == url }
 
@@ -47,20 +47,6 @@ object PomModifier {
         }
     }
 
-    private fun readModel(pomFilePath: Path): Model {
-        val reader = MavenXpp3Reader()
-        val model: Model
-        try {
-            Files.newInputStream(pomFilePath)
-                .use { `is` -> model = reader.read(`is`) }
-        } catch (e: IOException) {
-            throw UncheckedIOException(e)
-        } catch (e: XmlPullParserException) {
-            throw RuntimeException(e)
-        }
-        return model
-    }
-
     private fun writeModel(pomFilePath: Path, model: Model) {
         val writer = MavenXpp3Writer()
 
@@ -68,7 +54,5 @@ object PomModifier {
             .use { os -> writer.write(os, model) }
     }
 
-    fun pomFilePath(exercise: Exercise): Path {
-        return exercise.root.resolve("pom.xml")
-    }
+
 }

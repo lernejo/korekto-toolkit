@@ -12,7 +12,9 @@ internal class ExerciseTest {
     @Test
     internal fun `Git nature is loaded`() {
         val exercise =
-            ExerciseCloner(Paths.get("target/github")).gitClone(ExerciseCloner.toGitHubHttps("lernejo/korekto-toolkit"))
+            ExerciseCloner(Paths.get("target/github")).gitClone(
+                ExerciseCloner.toGitHubHttps("lernejo/korekto-toolkit")
+            )
 
         val lookedUpNature = exercise.lookupNature(GitNature::class.java)
 

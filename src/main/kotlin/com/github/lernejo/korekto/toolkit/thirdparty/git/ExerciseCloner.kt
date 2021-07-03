@@ -10,12 +10,12 @@ import java.nio.file.Paths
 
 class ExerciseCloner(private val workspace: Path) {
 
-    fun gitClone(uri: String): Exercise {
-        return gitClone(workspace, uri)
+    fun gitClone(uri: String, forcePull: Boolean = true): Exercise {
+        return gitClone(workspace, uri, forcePull)
     }
 
     companion object {
-        fun toGithubSsh(slug: String): String  = "git@github.com:$slug.git"
+        fun toGithubSsh(slug: String): String = "git@github.com:$slug.git"
         fun toGitHubHttps(slug: String): String = "https://github.com/$slug.git"
 
         fun extractSlug(url: String): String {
@@ -31,15 +31,17 @@ class ExerciseCloner(private val workspace: Path) {
             return name
         }
 
-        fun gitClone(workspace: Path, uri: String): Exercise {
+        fun gitClone(workspace: Path, uri: String, forcePull: Boolean): Exercise {
             val name = extractSlug(uri)
             val path = Paths.get(workspace.toString() + File.separator + name).toAbsolutePath()
             val potentialRepo = here(path)
             if (potentialRepo.isPresent) {
-                try {
-                    forcePull(potentialRepo.get(), uri)
-                } catch (e: RuntimeException) {
-                    throw RuntimeException("Could not pull -f repository: $path ($uri)", e)
+                if (!forcePull) {
+                    try {
+                        forcePull(potentialRepo.get(), uri)
+                    } catch (e: RuntimeException) {
+                        throw RuntimeException("Could not pull -f repository: $path ($uri)", e)
+                    }
                 }
             } else {
                 clone(uri, path)

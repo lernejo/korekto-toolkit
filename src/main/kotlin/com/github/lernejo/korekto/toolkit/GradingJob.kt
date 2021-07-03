@@ -25,7 +25,7 @@ class GradingJob(
 
     fun addStep(name: String, step: GradingStep) = GradingJob(steps.plus(NamedStep(name, step)), onErrorListeners)
 
-    fun addCloneStep() = addStep("cloning", CloneStep())
+    fun addCloneStep(forcePull: Boolean = true) = addStep("cloning", CloneStep(forcePull))
 
     @JvmOverloads
     fun addUpsertGitHubIssuesStep(locale: Locale, deadline: (GradingContext) -> Instant?, dryRun: Boolean = false) =

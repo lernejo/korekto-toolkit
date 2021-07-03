@@ -22,6 +22,9 @@ class GradingJobLauncher : Callable<Int> {
     @CommandLine.Option(names = ["-g", "--group"], description = ["grade several exercices based on a slug file"])
     var group: Boolean = false
 
+    @CommandLine.Option(names = ["-fp", "--force-pull"], description = ["force pull exercise, removing local modifications if any"], negatable = true)
+    var forcePull: Boolean = true;
+
     @CommandLine.Option(names = ["-f", "--slugFile"], description = ["slug file used in group mode"])
     var slugFile: Path = Paths.get("slugs.txt")
 
@@ -51,20 +54,20 @@ class GradingJobLauncher : Callable<Int> {
     }
 
     private fun buildGroupGradingJob(grader: Grader, counter: AtomicInteger, dryRun: Boolean) = GradingJob()
-        .addCloneStep()
+        .addCloneStep(forcePull)
         .addStep("display") { _, _ -> println(counter.incrementAndGet()) }
         .addStep("grading", grader)
         .addStoreResultsLocallyStep()
         .addUpsertGitHubIssuesStep(Locale.FRENCH, grader::deadline, dryRun)
 
     private fun buildLocalGradingJob(grader: Grader) = GradingJob()
-        .addCloneStep()
+        .addCloneStep(forcePull)
         .addStep("grading", grader)
         .addStoreResultsLocallyStep()
         .addUpsertGitHubIssuesStep(Locale.FRENCH, grader::deadline, dryRun = true)
 
     private fun buildContainerizedGradingJob(grader: Grader) = GradingJob()
-        .addCloneStep()
+        .addCloneStep(forcePull)
         .addStep("grading", grader)
         .addUpsertGitHubIssuesStep(Locale.FRENCH, grader::deadline)
         .addSendStep()

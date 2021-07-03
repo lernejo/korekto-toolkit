@@ -18,9 +18,9 @@ import java.nio.file.Files
 import java.time.Instant
 import java.util.*
 
-class CloneStep : GradingStep {
+class CloneStep(private val forcePull: Boolean) : GradingStep {
     override fun run(configuration: GradingConfiguration, context: GradingContext) {
-        context.exercise = ExerciseCloner(configuration.workspace).gitClone(configuration.repoUrl)
+        context.exercise = ExerciseCloner(configuration.workspace).gitClone(configuration.repoUrl, forcePull)
     }
 
     override fun close(context: GradingContext) {

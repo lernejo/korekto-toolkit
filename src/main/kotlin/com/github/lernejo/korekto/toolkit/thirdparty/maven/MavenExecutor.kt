@@ -63,7 +63,7 @@ object MavenExecutor {
         invoker.localRepositoryDirectory = localRepositoryPath.toFile()
         //val outputHandler = MemoryOutputHandler()
         val invocationRequest = DefaultInvocationRequest()
-            .setPomFile(PomModifier.pomFilePath(exercise).toFile())
+            .setPomFile(MavenReader.pomFilePath(exercise).toFile())
             .setBatchMode(true)
             .setGoals(goal.toList())
             .setOutputHandler(outputHandler)

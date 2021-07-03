@@ -13,7 +13,9 @@ internal class PmdExecutorTest {
     @Test
     internal fun pmd_process_rules() {
         val exercise =
-            ExerciseCloner(Paths.get("target/github")).gitClone(ExerciseCloner.toGitHubHttps("fridujo/classpath-junit-extension"))
+            ExerciseCloner(Paths.get("target/github")).gitClone(
+                ExerciseCloner.toGitHubHttps("fridujo/classpath-junit-extension")
+            )
 
         val report = PmdExecutor().runPmd(
             exercise,
