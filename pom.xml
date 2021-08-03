@@ -32,7 +32,7 @@
         <thymeleaf.version>3.0.12.RELEASE</thymeleaf.version>
         <pmd.version>6.39.0</pmd.version>
         <jakarta.xml.bind-api.version>3.0.1</jakarta.xml.bind-api.version>
-        <jaxb.version>3.0.1</jaxb.version>
+        <jaxb.version>3.0.2</jaxb.version>
 
         <junit-jupiter.version>5.8.1</junit-jupiter.version>
         <assertj-core.version>3.20.2</assertj-core.version>
