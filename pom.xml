@@ -36,7 +36,7 @@
 
         <junit-jupiter.version>5.7.2</junit-jupiter.version>
         <assertj-core.version>3.20.2</assertj-core.version>
-        <logback-classic.version>1.2.3</logback-classic.version>
+        <logback-classic.version>1.2.6</logback-classic.version>
 
         <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
         <maven-javadoc-plugin.version>3.3.0</maven-javadoc-plugin.version>
