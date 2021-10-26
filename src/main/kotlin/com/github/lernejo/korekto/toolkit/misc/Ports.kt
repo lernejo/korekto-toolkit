@@ -8,10 +8,19 @@ import java.util.concurrent.TimeUnit
 object Ports {
     @JvmStatic
     fun waitForPortToBeListenedTo(port: Int, timeoutUnit: TimeUnit, timeout: Long) {
+        waitForPortToBe(port, timeoutUnit, timeout) { p -> isListened(p) }
+    }
+
+    @JvmStatic
+    fun waitForPortToBeFreed(port: Int, timeoutUnit: TimeUnit, timeout: Long) {
+        waitForPortToBe(port, timeoutUnit, timeout) { p -> !isListened(p) }
+    }
+
+    private fun waitForPortToBe(port: Int, timeoutUnit: TimeUnit, timeout: Long, condition: (Int) -> Boolean) {
         val timeoutInMs = TimeUnit.MILLISECONDS.convert(timeout, timeoutUnit)
         val startTime = System.currentTimeMillis()
         do {
-            if (isListened(port)) {
+            if (condition(port)) {
                 return
             }
             try {
