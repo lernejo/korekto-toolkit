@@ -25,6 +25,7 @@ class GradingJob(
 
     fun addStep(name: String, step: GradingStep) = GradingJob(steps.plus(NamedStep(name, step)), onErrorListeners)
 
+    @JvmOverloads
     fun addCloneStep(forcePull: Boolean = true) = addStep("cloning", CloneStep(forcePull))
 
     @JvmOverloads
