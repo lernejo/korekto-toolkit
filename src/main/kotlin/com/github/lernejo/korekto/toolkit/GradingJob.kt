@@ -97,7 +97,7 @@ class GradingJob(
             try {
                 namedStep.action.run(configuration, context)
                 deque.addFirst { namedStep.action.close(it) }
-            } catch (e: RuntimeException) {
+            } catch (e: Exception) {
                 onErrorListeners.forEach { it.onError(e, configuration, context) }
                 when (e) {
                     is WarningException -> if (e.cause == null) {
@@ -149,7 +149,7 @@ interface Grader : GradingStep {
 }
 
 fun interface OnErrorListener {
-    fun onError(ex: RuntimeException, configuration: GradingConfiguration, context: GradingContext)
+    fun onError(ex: Exception, configuration: GradingConfiguration, context: GradingContext)
 }
 
 class WarningException(message: String, cause: java.lang.Exception) : RuntimeException(message, cause)
