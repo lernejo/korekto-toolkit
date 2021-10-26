@@ -17,7 +17,7 @@
         <maven.compiler.target>15</maven.compiler.target>
 
         <kotlin.compiler.jvmTarget>15</kotlin.compiler.jvmTarget>
-        <kotlin.version>1.5.20</kotlin.version>
+        <kotlin.version>1.5.31</kotlin.version>
 
         <slf4j.version>1.7.31</slf4j.version>
         <snakeyaml.version>1.29</snakeyaml.version>
@@ -25,9 +25,9 @@
         <picocli.version>4.6.1</picocli.version>
         <jgit.version>5.12.0.202106070339-r</jgit.version>
         <commonmark.version>0.17.0</commonmark.version>
-        <github-api.version>1.131</github-api.version>
+        <github-api.version>1.135</github-api.version>
         <okhttp.version>4.9.1</okhttp.version>
-        <maven.version>3.8.1</maven.version>
+        <maven.version>3.8.3</maven.version>
         <maven-invoker.version>3.1.0</maven-invoker.version>
         <thymeleaf.version>3.0.12.RELEASE</thymeleaf.version>
         <pmd.version>6.36.0</pmd.version>
