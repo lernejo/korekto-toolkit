@@ -9,9 +9,20 @@ import java.nio.file.Path
 object ClassLoaders {
 
     @JvmStatic
+    fun newChildClassLoader(vararg additionalPaths: Path): URLClassLoader {
+        val classPath: Array<URL> = additionalPaths.map { toUrl(it) }.toTypedArray()
+
+        return URLClassLoader(
+            classPath,
+            ClassLoaders::class.java.classLoader
+        )
+    }
+
+    @JvmStatic
     fun newIsolatedClassLoader(vararg additionalPaths: Path): URLClassLoader {
-        val classpath = System.getProperty("java.class.path").split(File.pathSeparator)
-            .map { first: String? -> Path.of(first) }
+        val classpath = System.getProperty("java.class.path")
+            .split(File.pathSeparator)
+            .map { rawPath -> Path.of(rawPath) }
             .map { p: Path ->
                 try {
                     return@map p.toUri().toURL()
