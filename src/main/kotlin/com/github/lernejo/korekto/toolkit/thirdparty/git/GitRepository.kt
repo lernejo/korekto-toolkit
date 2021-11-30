@@ -85,11 +85,16 @@ object GitRepository {
             LOGGER.debug("Cloning in: " + git.repository.directory)
             git
         } catch (e: GitAPIException) {
-            throw WarningException("Unable to clone in " + path.toAbsolutePath(), e)
+            throw buildWarningException(path, e)
         } catch (e: JGitInternalException) {
-            throw WarningException("Unable to clone in " + path.toAbsolutePath(), e)
+            throw buildWarningException(path, e)
         }
     }
+
+    private fun buildWarningException(
+        path: Path,
+        e: Exception
+    ) = WarningException("Unable to clone in ${path.toAbsolutePath()}: ${e.message}", e)
 
     @JvmStatic
     fun here(path: Path): Optional<Git> {
