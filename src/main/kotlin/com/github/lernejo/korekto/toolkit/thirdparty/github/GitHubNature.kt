@@ -11,12 +11,15 @@ import org.kohsuke.github.GHRepository
 import org.kohsuke.github.GitHub
 import org.kohsuke.github.GitHubBuilder
 import org.kohsuke.github.extras.okhttp3.OkHttpConnector
+import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.util.*
 import java.util.concurrent.TimeUnit
+
+private val logger = LoggerFactory.getLogger(GitHubNature::class.java)
 
 internal object GitHubClientHolder {
     val client: GitHub by lazy {
@@ -32,6 +35,7 @@ internal object GitHubClientHolder {
         if (token != null) {
             builder.withOAuthToken(token)
         }
+        logger.debug("[gh-client] Creating the GitHub client" + if (token != null) " (using token)" else " (public)")
         builder.build()
     }
 }
@@ -79,6 +83,7 @@ enum class WorkflowRunConclusion {
 
 class GitHubContext(val gitHub: GitHub, val exerciseName: String) : NatureContext {
     val repository: GHRepository by lazy {
+        logger.debug("[gh-client] Loading repository $exerciseName")
         gitHub.getRepository(exerciseName)
     }
 }

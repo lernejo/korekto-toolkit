@@ -105,7 +105,7 @@ class UpsertGitHubGradingIssues(
         )
         if (gitHubNature?.isPresent == true && context.gradeDetails.parts.isNotEmpty()) {
             gitHubNature.get().withContext<Void?> { ghContext: GitHubContext ->
-                val issues: List<GHIssue> = ghContext.repository.getIssues(GHIssueState.ALL)
+                val issues: List<GHIssue> = if(dryRun) listOf() else ghContext.repository.getIssues(GHIssueState.ALL)
                 upsertDailyIssue(context, issues, ghContext)
                 insertGGIssue(context, issues, ghContext)
                 null
