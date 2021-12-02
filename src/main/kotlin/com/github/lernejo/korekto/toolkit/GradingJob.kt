@@ -54,6 +54,7 @@ class GradingJob(
             OS.CURRENT_OS?.deleteDirectoryCommand(workspace)?.let { launch(it, null) }
         }
 
+        val failedSlugs = mutableListOf<String>()
         for (userSlug in userSlugs) {
             val gradingConfiguration = GradingConfiguration(
                 repoUrlBuilder(userSlug),
@@ -69,6 +70,7 @@ class GradingJob(
             val exitCode: Int = enhancedJob.run(gradingConfiguration)
 
             if (exitCode != 0) {
+                failedSlugs.add(userSlug)
                 failure++
             }
         }
@@ -76,6 +78,7 @@ class GradingJob(
 
         logger.info("All done in " + toString(System.currentTimeMillis() - start))
         logger.info("Success: " + (total - failure) + " / " + total)
+        logger.info("Slugs without repository:\n\t" + failedSlugs.stream().collect(Collectors.joining("\n\t")))
         logger.info("Grades (total=" + grades.size + ") min=" + grades.minOrNull() + " max=" + grades.maxOrNull() + " avg=" + grades.average())
         logger.info("\n\n${AsciiHistogram().asciiHistogram(grades)}")
 

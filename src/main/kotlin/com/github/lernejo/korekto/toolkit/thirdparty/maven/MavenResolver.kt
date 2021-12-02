@@ -28,7 +28,7 @@ object MavenResolver {
     fun getMavenHome(): Path? {
         val rawMavenHomeFromSystemVars = SystemVariables[MAVEN_HOME] ?: SystemVariables[M2_HOME]
         val mavenHomeFromSysVars: Path? = rawMavenHomeFromSystemVars
-            ?.let { Paths.get(it) }?.takeIf { Files.exists(it) }.takeIf { Files.isDirectory(it) }
+            ?.let { Paths.get(it) }?.takeIf { Files.exists(it) }?.takeIf { Files.isDirectory(it) }
 
         return mavenHomeFromSysVars ?: getMavenHomeFromCli()
     }
