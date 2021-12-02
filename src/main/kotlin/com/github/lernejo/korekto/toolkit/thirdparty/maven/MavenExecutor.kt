@@ -58,6 +58,7 @@ object MavenExecutor {
         outputHandler: MemoryOutputHandler = MemoryOutputHandler(),
         vararg goal: String
     ): MavenInvocationResult {
+        MavenResolver.declareMavenHomeIfNeeded()
         val localRepositoryPath: Path = initializeLocalRepo(workspace)
         val invoker: Invoker = CustomerInvoker()
         invoker.localRepositoryDirectory = localRepositoryPath.toFile()
