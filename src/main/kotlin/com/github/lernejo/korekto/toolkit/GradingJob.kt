@@ -1,5 +1,6 @@
 package com.github.lernejo.korekto.toolkit
 
+import com.github.lernejo.korekto.toolkit.launcher.GradingJobLauncher
 import com.github.lernejo.korekto.toolkit.misc.AsciiHistogram
 import com.github.lernejo.korekto.toolkit.misc.HumanReadableDuration.toString
 import com.github.lernejo.korekto.toolkit.misc.Maths
@@ -144,6 +145,12 @@ interface Grader : GradingStep {
     fun deadline(context: GradingContext): Instant? = null
 
     companion object {
+
+        init {
+            val properties = Properties()
+            properties.load(GradingJobLauncher::class.java.getClassLoader().getResourceAsStream("project.properties"))
+            println("Using KTK " + properties.get("project.version"))
+        }
 
         fun load(): Grader? {
             val serviceIterator = ServiceLoader.load(Grader::class.java).iterator()

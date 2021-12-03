@@ -88,9 +88,6 @@ class GradingJobLauncher : Callable<Int> {
 
         @JvmStatic
         fun main(args: Array<String>) {
-            val properties = Properties()
-            properties.load(GradingJobLauncher::class.java.getClassLoader().getResourceAsStream("project.properties"))
-            println("Using KTK " + properties.get("project.version"))
             exitProcess(CommandLine(GradingJobLauncher()).execute(*args))
         }
     }
