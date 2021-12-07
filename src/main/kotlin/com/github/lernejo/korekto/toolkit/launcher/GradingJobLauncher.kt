@@ -47,7 +47,9 @@ class GradingJobLauncher : Callable<Int> {
                 val dryRun = System.getProperty("dryRun", "false").toBoolean()
                     && System.getProperty("github_token") != null
                 val gradingJob = buildGroupGradingJob(grader, AtomicInteger(), dryRun)
-                gradingJob.runBatch(slugs, grader::slugToRepoUrl, resetWorkspace = resetWorkspace)
+                grader.use {
+                    gradingJob.runBatch(slugs, grader::slugToRepoUrl, resetWorkspace = resetWorkspace)
+                }
                 0
             }
             slug.isPresent -> {
@@ -57,10 +59,14 @@ class GradingJobLauncher : Callable<Int> {
                     OS.CURRENT_OS?.deleteDirectoryCommand(configuration.workspace)
                         ?.let { Processes.launch(it, null) }
                 }
-                buildLocalGradingJob(grader).run(configuration)
+                grader.use {
+                    buildLocalGradingJob(grader).run(configuration)
+                }
             }
             else -> {
-                buildContainerizedGradingJob(grader).run()
+                grader.use {
+                    buildContainerizedGradingJob(grader).run()
+                }
             }
         }
     }

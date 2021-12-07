@@ -7,6 +7,7 @@ import com.github.lernejo.korekto.toolkit.misc.Maths
 import com.github.lernejo.korekto.toolkit.misc.OS
 import com.github.lernejo.korekto.toolkit.misc.Processes.launch
 import org.slf4j.LoggerFactory
+import java.io.Closeable
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.Instant
@@ -136,13 +137,15 @@ fun interface GradingStep {
     }
 }
 
-interface Grader : GradingStep {
+interface Grader : GradingStep, Closeable {
 
     fun slugToRepoUrl(slug: String): String
 
     fun needsWorkspaceReset() = false
 
     fun deadline(context: GradingContext): Instant? = null
+    
+    override fun close() {}
 
     companion object {
 
