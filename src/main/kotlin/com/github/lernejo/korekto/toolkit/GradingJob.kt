@@ -14,6 +14,7 @@ import java.time.Instant
 import java.util.*
 import java.util.stream.Collectors
 import kotlin.math.max
+import kotlin.math.min
 
 class GradingJob(
     private val steps: List<NamedStep<GradingContext>> = emptyList(),
@@ -24,7 +25,8 @@ class GradingJob(
     private fun insertPreStep(name: String, step: GradingStep<in GradingContext>) =
         GradingJob(listOf(NamedStep(name, step)).plus(steps), onErrorListeners)
 
-    fun addStep(name: String, step: GradingStep<in GradingContext>) = GradingJob(steps.plus(NamedStep(name, step)), onErrorListeners)
+    fun addStep(name: String, step: GradingStep<in GradingContext>) =
+        GradingJob(steps.plus(NamedStep(name, step)), onErrorListeners)
 
     @JvmOverloads
     fun addCloneStep(forcePull: Boolean = true) = addStep("cloning", CloneStep(forcePull))
@@ -132,7 +134,7 @@ class GradingJob(
     }
 }
 
-fun interface GradingStep<T: GradingContext> {
+fun interface GradingStep<T : GradingContext> {
     fun run(context: T)
 
     @JvmDefault
@@ -140,7 +142,7 @@ fun interface GradingStep<T: GradingContext> {
     }
 }
 
-interface Grader<T: GradingContext> : GradingStep<T>, Closeable {
+interface Grader<T : GradingContext> : GradingStep<T>, Closeable {
 
     fun slugToRepoUrl(slug: String): String
 
@@ -196,4 +198,22 @@ data class GradeDetails(val parts: MutableList<GradePart> = ArrayList()) {
 
 data class GradePart(val id: String, val grade: Double, val maxGrade: Double?, val comments: List<String>)
 
-data class NamedStep<T: GradingContext>(val name: String, val action: GradingStep<T>)
+data class NamedStep<T : GradingContext>(val name: String, val action: GradingStep<T>)
+
+
+interface PartGrader<T : GradingContext> {
+    fun name(): String
+    fun maxGrade(): Double? {
+        return null
+    }
+
+    fun minGrade(): Double {
+        return 0.0
+    }
+
+    fun grade(context: T): GradePart
+
+    fun result(explanations: List<String>, grade: Double): GradePart {
+        return GradePart(name(), min(max(minGrade(), grade), maxGrade() ?: 0.0), maxGrade(), explanations)
+    }
+}
