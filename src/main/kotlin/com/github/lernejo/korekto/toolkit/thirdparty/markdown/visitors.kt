@@ -1,7 +1,6 @@
 package com.github.lernejo.korekto.toolkit.thirdparty.markdown
 
 import org.commonmark.node.*
-import java.util.*
 
 internal class BulletPointVisitor : AbstractVisitor() {
     @JvmField
@@ -35,7 +34,7 @@ internal class TitleVisitor(private val matchingLevel: Int) : AbstractVisitor() 
 
 internal class BadgeVisitor : AbstractVisitor() {
     val badges: MutableList<Badge> = ArrayList()
-    var linkDest: String? = null;
+    var linkDest: String? = null
 
     override fun visit(link: org.commonmark.node.Link) {
         linkDest = link.destination

@@ -18,9 +18,10 @@ import java.nio.file.Files
 import java.time.Instant
 import java.util.*
 
-class CloneStep(private val forcePull: Boolean) : GradingStep {
-    override fun run(configuration: GradingConfiguration, context: GradingContext) {
-        context.exercise = ExerciseCloner(configuration.workspace).gitClone(configuration.repoUrl, forcePull)
+class CloneStep(private val forcePull: Boolean) : GradingStep<GradingContext> {
+    override fun run(context: GradingContext) {
+        context.exercise =
+            ExerciseCloner(context.configuration.workspace).gitClone(context.configuration.repoUrl, forcePull)
     }
 
     override fun close(context: GradingContext) {
@@ -30,10 +31,10 @@ class CloneStep(private val forcePull: Boolean) : GradingStep {
 
 data class Payload(val action: String, val details: GradeDetails)
 
-class StoreResultsLocally : GradingStep {
-    override fun run(configuration: GradingConfiguration, context: GradingContext) {
+class StoreResultsLocally : GradingStep<GradingContext> {
+    override fun run(context: GradingContext) {
         val content = Gson().toJson(Payload("grading", context.gradeDetails))
-        val outputFilePath = configuration.workspace.resolve(context.exercise?.name + ".json")
+        val outputFilePath = context.configuration.workspace.resolve(context.exercise?.name + ".json")
         if (!Files.exists(outputFilePath.parent)) {
             Files.createDirectories(outputFilePath.parent)
         }
@@ -42,19 +43,20 @@ class StoreResultsLocally : GradingStep {
     }
 }
 
-class SendStep : GradingStep {
+class SendStep : GradingStep<GradingContext> {
     private val logger = LoggerFactory.getLogger(SendStep::class.java)
 
-    override fun run(configuration: GradingConfiguration, context: GradingContext) {
+    override fun run(context: GradingContext) {
         val content = Gson().toJson(Payload("grading", context.gradeDetails))
         val client = HttpClient.newHttpClient()
         val requestBuilder = HttpRequest.newBuilder()
-            .uri(URI.create(configuration.callbackUrl))
+            .uri(URI.create(context.configuration.callbackUrl))
             .POST(HttpRequest.BodyPublishers.ofString(content, StandardCharsets.UTF_8))
 
-        if (configuration.callbackPassword != null) {
+        if (context.configuration.callbackPassword != null) {
             val encodedPassword =
-                Base64.getEncoder().encodeToString(configuration.callbackPassword.toByteArray(StandardCharsets.UTF_8))
+                Base64.getEncoder()
+                    .encodeToString(context.configuration.callbackPassword.toByteArray(StandardCharsets.UTF_8))
             requestBuilder.header("Authorization", encodedPassword)
         }
         requestBuilder.header("Content-Type", "application/json")
@@ -71,16 +73,16 @@ class SendStep : GradingStep {
                 val body = response.body().trim { it <= ' ' }
                 val bodyMessage = if (body.isNotEmpty()) "\nBody:\n$body" else " (empty body)"
                 error =
-                    java.lang.RuntimeException("Failed to send grade to callback url ${configuration.callbackUrl}  / HTTP code: $statusCode$bodyMessage")
+                    java.lang.RuntimeException("Failed to send grade to callback url ${context.configuration.callbackUrl}  / HTTP code: $statusCode$bodyMessage")
             } else {
                 logger.info("Successfully sent results, HTTP code: $statusCode")
             }
         } catch (e: ConnectException) {
             error =
-                java.lang.RuntimeException("Failed to send grade to callback url ${configuration.callbackUrl}  / Message: ${e.message}")
+                java.lang.RuntimeException("Failed to send grade to callback url ${context.configuration.callbackUrl}  / Message: ${e.message}")
         } catch (e: Exception) {
             error = java.lang.RuntimeException(
-                "Failed to send grade to callback url ${configuration.callbackUrl}  / Message: ${e.message}",
+                "Failed to send grade to callback url ${context.configuration.callbackUrl}  / Message: ${e.message}",
                 e
             )
         }
@@ -95,17 +97,17 @@ class UpsertGitHubGradingIssues(
     private val locale: Locale,
     private val deadline: (GradingContext) -> Instant?,
     private val dryRun: Boolean = false
-) : GradingStep {
+) : GradingStep<GradingContext> {
 
     private val logger = LoggerFactory.getLogger(UpsertGitHubGradingIssues::class.java)
 
-    override fun run(configuration: GradingConfiguration, context: GradingContext) {
+    override fun run(context: GradingContext) {
         val gitHubNature = context.exercise?.lookupNature(
             GitHubNature::class.java
         )
         if (gitHubNature?.isPresent == true && context.gradeDetails.parts.isNotEmpty()) {
             gitHubNature.get().withContext<Void?> { ghContext: GitHubContext ->
-                val issues: List<GHIssue> = if(dryRun) listOf() else ghContext.repository.getIssues(GHIssueState.ALL)
+                val issues: List<GHIssue> = if (dryRun) listOf() else ghContext.repository.getIssues(GHIssueState.ALL)
                 upsertDailyIssue(context, issues, ghContext)
                 insertGGIssue(context, issues, ghContext)
                 null

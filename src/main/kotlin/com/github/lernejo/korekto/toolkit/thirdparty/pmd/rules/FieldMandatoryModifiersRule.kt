@@ -35,17 +35,17 @@ class FieldMandatoryModifiersRule : AbstractJavaRule() {
         if (node.isProtected) {
             modifiers.add(Modifier.PROTECTED)
         }
-        val missings: MutableSet<Modifier?> = EnumSet.noneOf(
+        val missings: MutableSet<Modifier> = EnumSet.noneOf(
             Modifier::class.java
         )
-        val illegals: MutableSet<Modifier?> = EnumSet.noneOf(
+        val illegals: MutableSet<Modifier> = EnumSet.noneOf(
             Modifier::class.java
         )
         modifiersToComply.forEach { m ->
-            if (m.forbidden && modifiers.contains(m.modifier)) {
-                illegals.add(m.modifier)
+            if ( m.forbidden && modifiers.contains(m.modifier)) {
+                illegals.add(m.modifier!!)
             } else if (!m.forbidden && !modifiers.contains(m.modifier)) {
-                missings.add(m.modifier)
+                missings.add(m.modifier!!)
             }
         }
         if (missings.isNotEmpty() || illegals.isNotEmpty()) {
@@ -100,7 +100,7 @@ class FieldMandatoryModifiersRule : AbstractJavaRule() {
         PUBLIC, PRIVATE, PROTECTED, STATIC, FINAL, ABSTRACT;
 
         override fun toString(): String {
-            return name.toLowerCase(Locale.ROOT)
+            return name.lowercase(Locale.ROOT)
         }
     }
 
@@ -110,7 +110,7 @@ class FieldMandatoryModifiersRule : AbstractJavaRule() {
 
         companion object {
             private val NAMES = Modifier.values().map { obj: Modifier -> obj.name }
-                .map { obj: String -> obj.toLowerCase() }.toSet()
+                .map { obj: String -> obj.lowercase(Locale.getDefault()) }.toSet()
 
             private fun startsWithExclamation(descriptor: String): Boolean {
                 return descriptor.isNotEmpty() && descriptor[0] == '!'
@@ -123,9 +123,9 @@ class FieldMandatoryModifiersRule : AbstractJavaRule() {
 
         init {
             modifier = if (forbidden) {
-                Modifier.valueOf(descriptor.substring(1).toUpperCase())
+                Modifier.valueOf(descriptor.substring(1).uppercase(Locale.getDefault()))
             } else {
-                Modifier.valueOf(descriptor.toUpperCase())
+                Modifier.valueOf(descriptor.uppercase(Locale.getDefault()))
             }
         }
     }

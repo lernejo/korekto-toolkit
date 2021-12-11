@@ -43,17 +43,13 @@ internal object GitHubClientHolder {
 class GitHubNature(val context: GitHubContext) : Nature<GitHubContext> {
     override fun <RESULT> withContext(action: (GitHubContext) -> RESULT): RESULT = action.invoke(context)
 
-    override fun finalize() {
-        super.finalize()
-    }
-
     fun listActionRuns(): List<WorkflowRun> {
         val requestURL = "https://api.github.com/repos/${context.exerciseName}/actions/runs"
         val url = URL(requestURL)
         val conn: HttpURLConnection = url.openConnection() as HttpURLConnection
         val token = System.getProperty("github_token")
         if (token != null) {
-            conn.setRequestProperty("Authorization", "token $token");
+            conn.setRequestProperty("Authorization", "token $token")
         }
 
         return conn.inputStream.use { `is` ->

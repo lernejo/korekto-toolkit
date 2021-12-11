@@ -1,11 +1,9 @@
 package com.github.lernejo.korekto.toolkit.thirdparty.maven.invoker
 
-import java.util.concurrent.atomic.AtomicReference
-import kotlin.jvm.Volatile
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import kotlin.Throws
+import java.util.concurrent.atomic.AtomicReference
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

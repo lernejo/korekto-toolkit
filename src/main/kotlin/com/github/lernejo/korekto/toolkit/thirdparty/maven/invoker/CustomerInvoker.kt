@@ -131,7 +131,7 @@ class CustomerInvoker : DefaultInvoker() {
         val processHook: Thread = object : Thread() {
             override fun run() {
                 if (isAlive(p)) {
-                    destroyProcessWithChildren(p.toHandle()!!);
+                    destroyProcessWithChildren(p.toHandle()!!)
                 }
             }
 
@@ -216,7 +216,7 @@ class CustomerInvoker : DefaultInvoker() {
                 return@CommandLineCallable returnValue
             } catch (ex: InterruptedException) {
                 if (isAlive(p)) {
-                    destroyProcessWithChildren(p.toHandle()!!);
+                    destroyProcessWithChildren(p.toHandle()!!)
                 }
                 throw CommandLineTimeOutException(
                     "Error while executing external command, process killed.",

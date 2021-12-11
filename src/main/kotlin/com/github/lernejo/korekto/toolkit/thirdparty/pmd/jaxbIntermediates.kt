@@ -59,7 +59,7 @@ internal class InternalPmdReport(
     constructor() : this(mutableListOf())
 
     fun asPublicReport(): PmdReport {
-        return PmdReport(files!!.stream().map(InternalFileReport::asPublicReport).collect(Collectors.toList()))
+        return PmdReport(files.stream().map(InternalFileReport::asPublicReport).collect(Collectors.toList()))
     }
 }
 
@@ -76,12 +76,12 @@ internal class InternalFileReport(
     fun asPublicReport(): FileReport {
         return FileReport(
             computeName()!!,
-            violations!!.stream().map(InternalViolationReport::asPublicReport).collect(Collectors.toList())
+            violations.stream().map(InternalViolationReport::asPublicReport).collect(Collectors.toList())
         )
     }
 
     private fun computeName(): String? {
-        return violations!!.stream()
+        return violations.stream()
             .map { v: InternalViolationReport -> v.packageName + '.' + v.className }
             .findFirst().orElse(name)
     }

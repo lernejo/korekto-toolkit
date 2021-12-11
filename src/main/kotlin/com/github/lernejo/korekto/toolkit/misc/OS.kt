@@ -25,7 +25,7 @@ enum class OS(val deleteCmdCreator: (Path) -> String) {
                 // null signals that the current OS is "unknown"
                 return null
             }
-            osName = osName.toLowerCase(Locale.ENGLISH)
+            osName = osName.lowercase(Locale.ENGLISH)
             if (osName.contains("linux")) {
                 return LINUX
             }

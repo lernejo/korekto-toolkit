@@ -9,6 +9,6 @@ internal class MavenResolverTest {
     internal fun MAVEN_HOME_is_resolved_and_set() {
         MavenResolver.declareMavenHomeIfNeeded()
 
-        Assertions.assertThat(System.getProperty("maven.home")).isNotEmpty();
+        Assertions.assertThat(System.getProperty("maven.home")).isNotEmpty
     }
 }

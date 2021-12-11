@@ -72,7 +72,7 @@ object GitRepository {
             val cloneCommand = Git.cloneRepository()
                 .setURI(uri)
                 .setDirectory(path.toFile())
-            val token = System.getProperty("github_token");
+            val token = System.getProperty("github_token")
             if (creds.username != null) {
                 cloneCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(creds.username, creds.password))
             } else if (token != null) {
@@ -120,7 +120,7 @@ object GitRepository {
 
     @JvmStatic
     fun forcePull(git: Git, uri: String) {
-        val token = System.getProperty("github_token");
+        val token = System.getProperty("github_token")
         val creds = if (token != null) {
             Creds(uri, token, "")
         } else {

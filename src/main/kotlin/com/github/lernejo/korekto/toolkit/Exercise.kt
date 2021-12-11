@@ -22,7 +22,7 @@ class Exercise(val name: String, val root: Path) : AutoCloseable {
     }
 
     override fun close() {
-        natures.values.forEach(Consumer { obj: Nature<*> -> obj.finalize() })
+        natures.values.forEach(Consumer { obj: Nature<*> -> obj.close() })
     }
 
     fun writeFile(relativePath: String, content: String): Path {

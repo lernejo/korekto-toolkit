@@ -14,7 +14,7 @@ internal class RuleSetGeneratorTest {
                 mapOf("minimum" to 100)
             ),
             Rule(
-                    "category/java/design.xml/ExcessiveMethodLengthRule",
+                "category/java/design.xml/ExcessiveMethodLengthRule",
                 "Method has \'{0}\' lines, exceeding the maximum of 10",
                 mapOf("minimum" to 12)
             ),
@@ -24,9 +24,9 @@ internal class RuleSetGeneratorTest {
         assertThat(ruleSet).isEqualTo(
             """
             <?xml version="1.0"?>
-            <ruleset name="Custom Rules"
+            <ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     name="Custom Rules"
                      xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
-                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                      xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
 
                 <description>

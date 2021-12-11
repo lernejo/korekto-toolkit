@@ -12,7 +12,7 @@ internal class GradingJobTest {
         val holder = AtomicReference<GradeDetails>()
         val exitCode = GradingJob()
             .addCloneStep()
-            .addStep("test_1") { conf, context ->
+            .addStep("test_1") { context ->
                 context.gradeDetails.parts.add(
                     GradePart(
                         "test_1",
@@ -31,6 +31,6 @@ internal class GradingJobTest {
             )
 
         assertThat(holder.get().parts).hasSize(1)
-        assertThat(exitCode).isEqualTo(1);
+        assertThat(exitCode).isEqualTo(1)
     }
 }

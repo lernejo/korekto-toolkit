@@ -4,11 +4,7 @@ import com.github.lernejo.korekto.toolkit.Exercise
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.Model
 import org.apache.maven.model.Repository
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException
-import java.io.IOException
-import java.io.UncheckedIOException
 import java.nio.file.Files
 import java.nio.file.Path
 

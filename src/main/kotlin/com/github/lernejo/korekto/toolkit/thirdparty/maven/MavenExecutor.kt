@@ -20,7 +20,7 @@ class MavenExecutionHandle(private val futureTask: FutureTask<MavenInvocationRes
         if (!thread.isInterrupted) {
             thread.interrupt()
             while (!futureTask.isDone) {
-                Thread.sleep(100L);
+                Thread.sleep(100L)
             }
         }
         return futureTask.get()

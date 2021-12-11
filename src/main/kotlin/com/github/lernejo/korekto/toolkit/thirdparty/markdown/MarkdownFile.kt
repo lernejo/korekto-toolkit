@@ -27,7 +27,7 @@ class MarkdownFile(path: Path) {
         return lineCountAcc + 1
     }
 
-    fun getLineCount() = lineCount;
+    fun getLineCount() = lineCount
 
     fun getTitlesOfLevel(level: Int): List<Title> {
         val visitor = TitleVisitor(level)

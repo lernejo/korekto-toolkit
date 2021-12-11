@@ -13,19 +13,18 @@ import java.nio.file.Paths
 import java.time.Instant
 import java.util.*
 import java.util.stream.Collectors
-import kotlin.collections.ArrayList
 import kotlin.math.max
 
 class GradingJob(
-    private val steps: List<NamedStep> = emptyList(),
+    private val steps: List<NamedStep<GradingContext>> = emptyList(),
     private val onErrorListeners: List<OnErrorListener> = emptyList()
 ) {
     private val logger = LoggerFactory.getLogger(GradingJob::class.java)
 
-    private fun insertPreStep(name: String, step: GradingStep) =
+    private fun insertPreStep(name: String, step: GradingStep<in GradingContext>) =
         GradingJob(listOf(NamedStep(name, step)).plus(steps), onErrorListeners)
 
-    fun addStep(name: String, step: GradingStep) = GradingJob(steps.plus(NamedStep(name, step)), onErrorListeners)
+    fun addStep(name: String, step: GradingStep<in GradingContext>) = GradingJob(steps.plus(NamedStep(name, step)), onErrorListeners)
 
     @JvmOverloads
     fun addCloneStep(forcePull: Boolean = true) = addStep("cloning", CloneStep(forcePull))
@@ -45,7 +44,8 @@ class GradingJob(
         userSlugs: List<String>,
         repoUrlBuilder: (String) -> String,
         workspace: Path = Paths.get("target/repositories"),
-        resetWorkspace: Boolean = false
+        resetWorkspace: Boolean = false,
+        contextSupplier: (GradingConfiguration) -> GradingContext
     ) {
         val total = userSlugs.size
         var failure = 0
@@ -65,11 +65,11 @@ class GradingJob(
                 workspace
             )
             val enhancedJob: GradingJob =
-                insertPreStep("add slug") { _, context -> context.data["slug"] = userSlug }
-                    .addStep("record grade") { _, context -> gradesBySlug[userSlug] = context.gradeDetails.grade() }
+                insertPreStep("add slug") { context -> context.data["slug"] = userSlug }
+                    .addStep("record grade") { context -> gradesBySlug[userSlug] = context.gradeDetails.grade() }
                     .addErrorListener { _, _, _ -> gradesBySlug[userSlug] = 0.0 }
 
-            val exitCode: Int = enhancedJob.run(gradingConfiguration)
+            val exitCode: Int = enhancedJob.run(gradingConfiguration, contextSupplier)
 
             if (exitCode != 0) {
                 failedSlugs.add(userSlug)
@@ -92,16 +92,19 @@ class GradingJob(
     }
 
     @JvmOverloads
-    fun run(configuration: GradingConfiguration = GradingConfiguration()): Int {
+    fun run(
+        configuration: GradingConfiguration = GradingConfiguration(),
+        contextSupplier: (GradingConfiguration) -> GradingContext = { GradingContext(it) }
+    ): Int {
         val start = System.currentTimeMillis()
-        val context = GradingContext()
+        val context = contextSupplier(configuration)
         val deque: Deque<(GradingContext) -> Unit> = LinkedList()
         var exitCode = 0
         for (namedStep in steps) {
             logger.debug("Start ${namedStep.name}...")
             val stepStart = System.currentTimeMillis()
             try {
-                namedStep.action.run(configuration, context)
+                namedStep.action.run(context)
                 deque.addFirst { namedStep.action.close(it) }
             } catch (e: Exception) {
                 onErrorListeners.forEach { it.onError(e, configuration, context) }
@@ -129,35 +132,37 @@ class GradingJob(
     }
 }
 
-fun interface GradingStep {
-    fun run(configuration: GradingConfiguration, context: GradingContext)
+fun interface GradingStep<T: GradingContext> {
+    fun run(context: T)
 
     @JvmDefault
-    fun close(context: GradingContext) {
+    fun close(context: T) {
     }
 }
 
-interface Grader : GradingStep, Closeable {
+interface Grader<T: GradingContext> : GradingStep<T>, Closeable {
 
     fun slugToRepoUrl(slug: String): String
 
     fun needsWorkspaceReset() = false
 
     fun deadline(context: GradingContext): Instant? = null
-    
+
+    fun gradingContext(configuration: GradingConfiguration): T = GradingContext(configuration) as T
+
     override fun close() {}
 
     companion object {
 
         init {
             val properties = Properties()
-            properties.load(GradingJobLauncher::class.java.getClassLoader().getResourceAsStream("project.properties"))
-            println("Using KTK " + properties.get("project.version"))
+            properties.load(GradingJobLauncher::class.java.classLoader.getResourceAsStream("project.properties"))
+            println("Using KTK " + properties["project.version"])
         }
 
-        fun load(): Grader? {
+        fun load(): Grader<GradingContext>? {
             val serviceIterator = ServiceLoader.load(Grader::class.java).iterator()
-            return if (serviceIterator.hasNext()) serviceIterator.next() else null
+            return if (serviceIterator.hasNext()) serviceIterator.next() as Grader<GradingContext>? else null
         }
     }
 }
@@ -175,10 +180,13 @@ class GradingConfiguration(
     val workspace: Path = Paths.get("target/repositories")
 )
 
-class GradingContext {
+open class GradingContext(val configuration: GradingConfiguration) : Closeable {
     var exercise: Exercise? = null
     val gradeDetails = GradeDetails()
     val data = mutableMapOf<String, Any>()
+
+    override fun close() {
+    }
 }
 
 data class GradeDetails(val parts: MutableList<GradePart> = ArrayList()) {
@@ -188,4 +196,4 @@ data class GradeDetails(val parts: MutableList<GradePart> = ArrayList()) {
 
 data class GradePart(val id: String, val grade: Double, val maxGrade: Double?, val comments: List<String>)
 
-data class NamedStep(val name: String, val action: GradingStep)
+data class NamedStep<T: GradingContext>(val name: String, val action: GradingStep<T>)

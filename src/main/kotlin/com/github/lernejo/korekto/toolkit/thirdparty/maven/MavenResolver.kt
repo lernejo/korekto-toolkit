@@ -20,7 +20,7 @@ object MavenResolver {
     fun declareMavenHomeIfNeeded() {
         val mavenHome = getMavenHome()
         if (mavenHome != null && System.getProperty("maven.home") == null) {
-            System.setProperty("maven.home", mavenHome!!.toString())
+            System.setProperty("maven.home", mavenHome.toString())
         }
     }
 

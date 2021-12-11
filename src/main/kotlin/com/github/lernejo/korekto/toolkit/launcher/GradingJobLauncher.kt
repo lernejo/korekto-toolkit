@@ -2,6 +2,7 @@ package com.github.lernejo.korekto.toolkit.launcher
 
 import com.github.lernejo.korekto.toolkit.Grader
 import com.github.lernejo.korekto.toolkit.GradingConfiguration
+import com.github.lernejo.korekto.toolkit.GradingContext
 import com.github.lernejo.korekto.toolkit.GradingJob
 import com.github.lernejo.korekto.toolkit.misc.Loader
 import com.github.lernejo.korekto.toolkit.misc.OS
@@ -29,7 +30,7 @@ class GradingJobLauncher : Callable<Int> {
         description = ["force pull exercise, removing local modifications if any"],
         negatable = true
     )
-    var forcePull: Boolean = true;
+    var forcePull: Boolean = true
 
     @CommandLine.Option(names = ["-f", "--slugFile"], description = ["slug file used in group mode"])
     var slugFile: Path = Paths.get("slugs.txt")
@@ -48,7 +49,12 @@ class GradingJobLauncher : Callable<Int> {
                     && System.getProperty("github_token") != null
                 val gradingJob = buildGroupGradingJob(grader, AtomicInteger(), dryRun)
                 grader.use {
-                    gradingJob.runBatch(slugs, grader::slugToRepoUrl, resetWorkspace = resetWorkspace)
+                    gradingJob.runBatch(
+                        slugs,
+                        grader::slugToRepoUrl,
+                        resetWorkspace = resetWorkspace,
+                        contextSupplier = grader::gradingContext
+                    )
                 }
                 0
             }
@@ -60,31 +66,31 @@ class GradingJobLauncher : Callable<Int> {
                         ?.let { Processes.launch(it, null) }
                 }
                 grader.use {
-                    buildLocalGradingJob(grader).run(configuration)
+                    buildLocalGradingJob(grader).run(configuration, grader::gradingContext)
                 }
             }
             else -> {
                 grader.use {
-                    buildContainerizedGradingJob(grader).run()
+                    buildContainerizedGradingJob(grader).run(contextSupplier = grader::gradingContext)
                 }
             }
         }
     }
 
-    private fun buildGroupGradingJob(grader: Grader, counter: AtomicInteger, dryRun: Boolean) = GradingJob()
+    private fun buildGroupGradingJob(grader: Grader<GradingContext>, counter: AtomicInteger, dryRun: Boolean) = GradingJob()
         .addCloneStep(forcePull)
-        .addStep("display") { _, _ -> println(counter.incrementAndGet()) }
+        .addStep("display") { _ -> println(counter.incrementAndGet()) }
         .addStep("grading", grader)
         .addStoreResultsLocallyStep()
         .addUpsertGitHubIssuesStep(Locale.FRENCH, grader::deadline, dryRun)
 
-    private fun buildLocalGradingJob(grader: Grader) = GradingJob()
+    private fun buildLocalGradingJob(grader: Grader<GradingContext>) = GradingJob()
         .addCloneStep(forcePull)
         .addStep("grading", grader)
         .addStoreResultsLocallyStep()
         .addUpsertGitHubIssuesStep(Locale.FRENCH, grader::deadline, dryRun = true)
 
-    private fun buildContainerizedGradingJob(grader: Grader) = GradingJob()
+    private fun buildContainerizedGradingJob(grader: Grader<GradingContext>) = GradingJob()
         .addCloneStep(forcePull)
         .addStep("grading", grader)
         .addUpsertGitHubIssuesStep(Locale.FRENCH, grader::deadline)

@@ -1,7 +1,5 @@
 package com.github.lernejo.korekto.toolkit
 
-import kotlin.jvm.Throws
-
 class MetadataParserV1 : VersionedMetadataParser {
 
     companion object {
@@ -13,14 +11,14 @@ class MetadataParserV1 : VersionedMetadataParser {
     override fun parse(yaml: Map<String, Any>): Metadata {
         val authors = yaml["authors"] as List<Map<String, Any>>? ?: listOf()
         return Metadata(authors
-                .map { a ->
-                    Metadata.Author(
-                            a["name"] as String,
-                            a["primary-email"] as String,
-                            emailsNodeToList(a["emails"])
-                    )
-                }
-                .toSet())
+            .map { a ->
+                Metadata.Author(
+                    a["name"] as String,
+                    a["primary-email"] as String,
+                    emailsNodeToList(a["emails"])
+                )
+            }
+            .toSet())
     }
 
     @Suppress("UNCHECKED_CAST")

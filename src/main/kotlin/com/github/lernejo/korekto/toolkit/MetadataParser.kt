@@ -5,12 +5,11 @@ import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.file.Path
-import kotlin.jvm.Throws
 
 class MetadataParser {
 
     private val parsersByVersion = mapOf(
-            MetadataParserV1.VERSION to MetadataParserV1()
+        MetadataParserV1.VERSION to MetadataParserV1()
     )
 
     @Throws(MetadataParsingException::class)
@@ -25,7 +24,7 @@ class MetadataParser {
                     throw MetadataParsingException(configurationPath, "Missing apiVersion field from")
                 }
                 val parser = parsersByVersion[apiVersion]
-                        ?: throw MetadataParsingException(configurationPath, "Unknown apiVersion '$apiVersion' in")
+                    ?: throw MetadataParsingException(configurationPath, "Unknown apiVersion '$apiVersion' in")
 
                 return parser.parse(document)
             }
@@ -33,7 +32,7 @@ class MetadataParser {
             return Metadata.empty()
         } catch (e: IOException) {
             throw MetadataParsingException(configurationPath, "Unable to read", e)
-        } catch(e: InternalParsingException) {
+        } catch (e: InternalParsingException) {
             throw MetadataParsingException(configurationPath, e.message!!)
         }
     }
@@ -51,7 +50,12 @@ private fun formatMessage(configurationPath: Path, messagePrefix: String): Strin
 }
 
 class MetadataParsingException : RuntimeException {
-    constructor(configurationPath: Path, messagePrefix: String, cause: Exception) : super(formatMessage(configurationPath, messagePrefix), cause)
+    constructor(configurationPath: Path, messagePrefix: String, cause: Exception) : super(
+        formatMessage(
+            configurationPath,
+            messagePrefix
+        ), cause
+    )
 
     constructor(configurationPath: Path, messagePrefix: String) : super(formatMessage(configurationPath, messagePrefix))
 }

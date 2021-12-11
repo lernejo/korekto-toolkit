@@ -16,9 +16,9 @@ import java.util.*
 class GitNature(val context: GitContext) : Nature<GitContext> {
     override fun <RESULT> withContext(action: (GitContext) -> RESULT): RESULT = action.invoke(context)
 
-    override fun finalize() {
+    override fun close() {
         context.git.repository.close()
-        super.finalize()
+        super.close()
     }
 }
 

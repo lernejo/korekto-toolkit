@@ -14,7 +14,9 @@ interface Nature<CONTEXT : NatureContext> {
 
     fun inContext(action: Consumer<CONTEXT>) = withContext { c -> action.accept(c) }
 
-    fun finalize() {}
+    fun close() {
+
+    }
 }
 
 interface NatureContext

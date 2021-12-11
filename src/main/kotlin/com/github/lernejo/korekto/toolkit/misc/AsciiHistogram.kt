@@ -33,7 +33,7 @@ class AsciiHistogram {
                 if (occurrences.get() > lowPercentage * maxOccurrences) {
                     if (occurrences.get() <= upPercentage * maxOccurrences) {
                         histogramBuilder.append(pad(occurrences.get().toString(), columnWidth))
-                    } else if(occurrences.get() <= previousUpPercentage * maxOccurrences) {
+                    } else if (occurrences.get() <= previousUpPercentage * maxOccurrences) {
                         histogramBuilder.append(pad("┬", columnWidth))
                     } else {
                         histogramBuilder.append(pad("║", columnWidth))

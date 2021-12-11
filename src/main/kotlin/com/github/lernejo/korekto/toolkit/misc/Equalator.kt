@@ -6,6 +6,7 @@ import java.io.IOException
 import java.lang.reflect.InvocationTargetException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.*
 import kotlin.math.abs
 
 class Equalator(private val permissiveness: Int) {
@@ -20,7 +21,7 @@ class Equalator(private val permissiveness: Int) {
         }
         when (o1) {
             is String -> {
-                return compareCharSequence(o1.toLowerCase(), (o2 as String).toLowerCase())
+                return compareCharSequence(o1.lowercase(Locale.getDefault()), (o2 as String).lowercase(Locale.getDefault()))
             }
             is Number -> {
                 return compareNumber(o1, (o2 as Number))
