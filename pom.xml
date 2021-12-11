@@ -33,6 +33,8 @@
         <pmd.version>6.41.0</pmd.version>
         <jakarta.xml.bind-api.version>3.0.1</jakarta.xml.bind-api.version>
         <jaxb.version>3.0.2</jaxb.version>
+        <amqp-client.version>5.14.0</amqp-client.version>
+        <juniversalchardet.version>2.4.0</juniversalchardet.version>
 
         <junit-jupiter.version>5.8.2</junit-jupiter.version>
         <assertj-core.version>3.21.0</assertj-core.version>
@@ -72,7 +74,7 @@
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib</artifactId>
+            <artifactId>kotlin-stdlib-jdk8</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
 
@@ -145,6 +147,16 @@
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
             <version>${jaxb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+            <version>${amqp-client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.albfernandez</groupId>
+            <artifactId>juniversalchardet</artifactId>
+            <version>${juniversalchardet.version}</version>
         </dependency>
 
         <!-- Test dependencies -->
