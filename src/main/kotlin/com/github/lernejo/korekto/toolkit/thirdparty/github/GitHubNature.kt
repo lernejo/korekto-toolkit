@@ -4,7 +4,7 @@ import com.github.lernejo.korekto.toolkit.Exercise
 import com.github.lernejo.korekto.toolkit.Nature
 import com.github.lernejo.korekto.toolkit.NatureContext
 import com.github.lernejo.korekto.toolkit.NatureFactory
-import com.google.gson.Gson
+import com.github.lernejo.korekto.toolkit.objectMapper;
 import okhttp3.OkHttpClient
 import org.eclipse.jgit.api.Git
 import org.kohsuke.github.GHRepository
@@ -55,7 +55,7 @@ class GitHubNature(val context: GitHubContext) : Nature<GitHubContext> {
         return conn.inputStream.use { `is` ->
             Scanner(`is`, StandardCharsets.UTF_8).use { scanner ->
                 val jsonString = scanner.useDelimiter("\\A").next()
-                Gson().fromJson(jsonString, ActionRunsResponse::class.java).workflow_runs
+                objectMapper.readValue(jsonString, ActionRunsResponse::class.java).workflow_runs
             }
         }
     }

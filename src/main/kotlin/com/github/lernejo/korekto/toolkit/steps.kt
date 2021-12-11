@@ -1,10 +1,11 @@
 package com.github.lernejo.korekto.toolkit
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.lernejo.korekto.toolkit.i18n.I18nTemplateResolver
 import com.github.lernejo.korekto.toolkit.thirdparty.git.ExerciseCloner
 import com.github.lernejo.korekto.toolkit.thirdparty.github.GitHubContext
 import com.github.lernejo.korekto.toolkit.thirdparty.github.GitHubNature
-import com.google.gson.Gson
 import org.kohsuke.github.GHIssue
 import org.kohsuke.github.GHIssueState
 import org.slf4j.LoggerFactory
@@ -17,6 +18,10 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.time.Instant
 import java.util.*
+
+internal val objectMapper = ObjectMapper()
+    .findAndRegisterModules()
+    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
 class CloneStep(private val forcePull: Boolean) : GradingStep<GradingContext> {
     override fun run(context: GradingContext) {
@@ -33,7 +38,7 @@ data class Payload(val action: String, val details: GradeDetails)
 
 class StoreResultsLocally : GradingStep<GradingContext> {
     override fun run(context: GradingContext) {
-        val content = Gson().toJson(Payload("grading", context.gradeDetails))
+        val content = objectMapper.writeValueAsString(Payload("grading", context.gradeDetails))
         val outputFilePath = context.configuration.workspace.resolve(context.exercise?.name + ".json")
         if (!Files.exists(outputFilePath.parent)) {
             Files.createDirectories(outputFilePath.parent)
@@ -47,7 +52,7 @@ class SendStep : GradingStep<GradingContext> {
     private val logger = LoggerFactory.getLogger(SendStep::class.java)
 
     override fun run(context: GradingContext) {
-        val content = Gson().toJson(Payload("grading", context.gradeDetails))
+        val content = objectMapper.writeValueAsString(Payload("grading", context.gradeDetails))
         val client = HttpClient.newHttpClient()
         val requestBuilder = HttpRequest.newBuilder()
             .uri(URI.create(context.configuration.callbackUrl))
