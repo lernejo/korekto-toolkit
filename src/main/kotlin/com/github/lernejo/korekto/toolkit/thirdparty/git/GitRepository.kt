@@ -81,6 +81,7 @@ object GitRepository {
                     .setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
             }
             val git = cloneCommand
+                .setCloneAllBranches(true)
                 .call()
             LOGGER.debug("Cloning in: " + git.repository.directory)
             git
@@ -118,14 +119,18 @@ object GitRepository {
         }
     }
 
-    @JvmStatic
-    fun forcePull(git: Git, uri: String) {
+    internal fun extractCreds(uri: String): Creds {
         val token = System.getProperty("github_token")
-        val creds = if (token != null) {
+        return if (token != null) {
             Creds(uri, token, "")
         } else {
             extractCredParts(uri)
         }
+    }
+
+    @JvmStatic
+    fun forcePull(git: Git, uri: String) {
+        val creds = extractCreds(uri)
 
         try {
             try {

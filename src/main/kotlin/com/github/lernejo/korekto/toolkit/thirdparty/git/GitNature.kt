@@ -10,6 +10,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.ListBranchCommand
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
 import org.eclipse.jgit.revwalk.RevCommit
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import java.io.IOException
 import java.util.*
 
@@ -34,6 +35,8 @@ class GitContext(val git: Git) : NatureContext {
             }
             .toSet()
     }
+
+    fun currentBranchName() = git.repository.branch
 
     fun checkout(branchName: String) {
         try {
