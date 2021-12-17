@@ -1,5 +1,6 @@
 package com.github.lernejo.korekto.toolkit
 
+import com.github.lernejo.korekto.toolkit.misc.ThrowingConsumer
 import java.util.*
 import java.util.function.Consumer
 
@@ -12,7 +13,7 @@ interface Nature<CONTEXT : NatureContext> {
         null
     }
 
-    fun inContext(action: Consumer<CONTEXT>) = withContext { c -> action.accept(c) }
+    fun inContext(action: ThrowingConsumer<CONTEXT>) = withContext { c -> action.accept(c) }
 
     fun close() {
 

@@ -11,8 +11,7 @@ import java.nio.file.Path
 object PomModifier {
 
     @JvmStatic
-    fun addDependency(exercise: Exercise, groupId: String, artifactId: String, version: String) {
-        val pomFilePath = MavenReader.pomFilePath(exercise)
+    fun addDependency(pomFilePath: Path, groupId: String, artifactId: String, version: String) {
         val model: Model = MavenReader.readModel(pomFilePath)
 
         val alreadySet = model.dependencies.any { d -> d.groupId == groupId && d.artifactId == artifactId }
@@ -28,9 +27,14 @@ object PomModifier {
     }
 
     @JvmStatic
-    fun addRepository(exercise: Exercise, id: String, url: String) {
+    fun addDependency(exercise: Exercise, groupId: String, artifactId: String, version: String) {
         val pomFilePath = MavenReader.pomFilePath(exercise)
-        val model: Model = MavenReader.readModel(exercise)
+        addDependency(pomFilePath, groupId, artifactId, version)
+    }
+
+    @JvmStatic
+    fun addRepository(pomFilePath: Path, id: String, url: String) {
+        val model: Model = MavenReader.readModel(pomFilePath)
 
         val alreadySet = model.repositories.any { r -> r.url == url }
 
@@ -43,12 +47,16 @@ object PomModifier {
         }
     }
 
+    @JvmStatic
+    fun addRepository(exercise: Exercise, id: String, url: String) {
+        val pomFilePath = MavenReader.pomFilePath(exercise)
+        addRepository(pomFilePath, id, url)
+    }
+
     private fun writeModel(pomFilePath: Path, model: Model) {
         val writer = MavenXpp3Writer()
 
         Files.newOutputStream(pomFilePath)
             .use { os -> writer.write(os, model) }
     }
-
-
 }
