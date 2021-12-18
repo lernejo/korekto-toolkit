@@ -1,27 +1,45 @@
 package com.github.lernejo.korekto.toolkit.thirdparty.pmd
 
 import com.github.lernejo.korekto.toolkit.Exercise
+import com.github.lernejo.korekto.toolkit.misc.writeFile
 import net.sourceforge.pmd.PMD
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.nio.file.Files
+import java.nio.file.Path
 import java.util.*
+import java.util.stream.Collectors
 
 class PmdExecutor {
 
     private val LOGGER = LoggerFactory.getLogger(PmdExecutor::class.java)
 
-    fun runPmd(exercise: Exercise, vararg rules: Rule): Optional<PmdReport> {
+    fun runPmd(exercise: Exercise, vararg rules: Rule): List<PmdReport> {
         val ruleSet = RuleSetGenerator().generateRuleSet(*rules)
-        val ruleSetPath = exercise.writeFile("ruleSet.xml", ruleSet)
 
-        val reportPath = exercise.writeFile("target/pmd.xml", "")
-        val srcDirectory = exercise.root.resolve("src/main/java")
+        val javaModules = Files.walk(exercise.root)
+            .filter { f -> f.toString().endsWith("src" + File.separator + "main" + File.separator + "java") }
+            .filter(Files::isDirectory)
+            .map { f -> f.parent.parent.parent }
+            .collect(Collectors.toList())
+
+        return javaModules
+            .map { runPmd(it, ruleSet) }
+            .filter(Objects::nonNull)
+            .map { r -> r!! }
+    }
+
+    private fun runPmd(path: Path, ruleSet: String): PmdReport? {
+        val ruleSetPath = path.writeFile("ruleSet.xml", ruleSet)
+
+        val reportPath = path.writeFile("target/pmd.xml", "")
+        val srcDirectory = path.resolve("src/main/java")
         if (!Files.exists(srcDirectory)) {
             LOGGER.warn("No source directory")
-            return Optional.empty()
+            return null
         }
         val arguments = arrayOf(
-            "-cache", exercise.root.resolve("target/pmd.cache").toAbsolutePath().toString(),
+            "-cache", path.resolve("target/pmd.cache").toAbsolutePath().toString(),
             "-d", srcDirectory.toAbsolutePath().toString(),
             "-f", "xml",
             "-R", ruleSetPath.toString(),
@@ -30,7 +48,7 @@ class PmdExecutor {
         val exitCode = PMD.run(arguments)
         if (exitCode == 1) {
             LOGGER.warn("PMD failed with errors")
-            return Optional.empty()
+            return null
         }
         return parse(reportPath)
     }

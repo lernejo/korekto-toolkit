@@ -13,7 +13,7 @@ import java.nio.file.StandardOpenOption
 import java.util.*
 import java.util.stream.Collectors
 
-internal fun parse(reportPath: Path): Optional<PmdReport> {
+internal fun parse(reportPath: Path): PmdReport? {
     return try {
         val fixedReportPath = reportPath.parent.resolve("pmdFixed.xml")
         Files.write(fixedReportPath, ByteArray(0))
@@ -37,9 +37,9 @@ internal fun parse(reportPath: Path): Optional<PmdReport> {
         val internalPmdReport =
             jaxbContext.createUnmarshaller().unmarshal(fixedReportPath.toFile()) as InternalPmdReport
         if (internalPmdReport.files != null) {
-            Optional.of(internalPmdReport.asPublicReport())
+            internalPmdReport.asPublicReport()
         } else {
-            Optional.empty()
+            null
         }
     } catch (   // | FileNotFoundException | SAXException | ParserConfigurationException
         e: JAXBException

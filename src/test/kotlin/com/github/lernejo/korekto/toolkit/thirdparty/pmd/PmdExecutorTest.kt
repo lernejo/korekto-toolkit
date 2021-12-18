@@ -31,6 +31,6 @@ internal class PmdExecutorTest {
             ),
             Rule(FieldMandatoryModifiersRule::class.java)
         )
-        assertThat(report.get().fileReports).hasSize(11)
+        assertThat(report[0].fileReports).hasSize(11)
     }
 }
