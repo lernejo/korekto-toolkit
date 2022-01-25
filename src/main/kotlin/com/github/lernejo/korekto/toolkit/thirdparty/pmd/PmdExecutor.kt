@@ -39,7 +39,7 @@ class PmdExecutor {
             return null
         }
         val arguments = arrayOf(
-            "-cache", path.resolve("target/pmd.cache").toAbsolutePath().toString(),
+            "--cache", path.resolve("target/pmd.cache").toAbsolutePath().toString(),
             "-d", srcDirectory.toAbsolutePath().toString(),
             "-f", "xml",
             "-R", ruleSetPath.toString(),
