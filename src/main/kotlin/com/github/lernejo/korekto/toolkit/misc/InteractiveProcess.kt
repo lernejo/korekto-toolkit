@@ -10,10 +10,10 @@ import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
 
-class InteractiveProcess(
+class InteractiveProcess @JvmOverloads constructor(
     val process: Process,
-    private val processReadTimeout: Long = System.getProperty("PROCESS_READ_TIMEOUT", "400").toLong(),
-    private val processReadRetryDelay: Long = System.getProperty("PROCESS_READ_RETRY_DELAY", "50").toLong()
+    val processReadTimeout: Long = System.getProperty("PROCESS_READ_TIMEOUT", "400").toLong(),
+    val processReadRetryDelay: Long = System.getProperty("PROCESS_READ_RETRY_DELAY", "50").toLong()
 ) : AutoCloseable {
 
     private val logger = LoggerFactory.getLogger(InteractiveProcess::class.java)
