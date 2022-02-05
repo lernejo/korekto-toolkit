@@ -135,6 +135,7 @@ class FieldMandatoryModifiersRule : AbstractJavaRule() {
             PropertyFactory.stringListProperty("modifiers")
                 .desc("List of field mandatory modifiers, ! to forbid them")
                 .defaultValue(listOf("final", "!static"))
+                .delim(',')
                 .requireEach(
                     fromPredicate(
                         { descriptor: String -> ModifierMeta.isValid(descriptor) },

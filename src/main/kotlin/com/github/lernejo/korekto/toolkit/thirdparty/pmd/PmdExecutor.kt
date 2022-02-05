@@ -17,13 +17,13 @@ class PmdExecutor {
     fun runPmd(exercise: Exercise, vararg rules: Rule): List<PmdReport> {
         val ruleSet = RuleSetGenerator().generateRuleSet(*rules)
 
-        val javaModules = Files.walk(exercise.root)
+        val mavenModules = Files.walk(exercise.root)
             .filter { f -> f.toString().endsWith("src" + File.separator + "main" + File.separator + "java") }
             .filter(Files::isDirectory)
             .map { f -> f.parent.parent.parent }
             .collect(Collectors.toList())
 
-        return javaModules
+        return mavenModules
             .map { runPmd(it, ruleSet) }
             .filter(Objects::nonNull)
             .map { r -> r!! }

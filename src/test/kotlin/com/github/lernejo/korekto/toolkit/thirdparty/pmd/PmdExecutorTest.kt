@@ -22,15 +22,15 @@ internal class PmdExecutorTest {
             Rule(
                 ExcessiveClassLengthRule::class.java,
                 "Class has {0} lines, exceeding the maximum of 100",
-                Map.of("minimum", 100)
+                mapOf("minimum" to 100)
             ),
             Rule(
                 ExcessiveMethodLengthRule::class.java,
                 "Method has {0} lines, exceeding the maximum of 12",
-                Map.of("minimum", 12)
+                mapOf("minimum" to 12)
             ),
-            Rule(FieldMandatoryModifiersRule::class.java)
+            Rule(FieldMandatoryModifiersRule::class.java, null, Map.of("modifiers", "private, final, !static"))
         )
-        assertThat(report[0].fileReports).hasSize(11)
+        assertThat(report[0].fileReports).hasSize(14)
     }
 }
