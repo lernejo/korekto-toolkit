@@ -6,6 +6,7 @@ import com.github.lernejo.korekto.toolkit.misc.HumanReadableDuration.toString
 import com.github.lernejo.korekto.toolkit.misc.Maths
 import com.github.lernejo.korekto.toolkit.misc.OS
 import com.github.lernejo.korekto.toolkit.misc.Processes.launch
+import com.github.lernejo.korekto.toolkit.misc.RandomSupplier
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.nio.file.Path
@@ -183,6 +184,7 @@ class GradingConfiguration(
 )
 
 open class GradingContext(val configuration: GradingConfiguration) : Closeable {
+    var randomSource = RandomSupplier.createRandom()
     var exercise: Exercise? = null
     val gradeDetails = GradeDetails()
     val data = mutableMapOf<String, Any>()
