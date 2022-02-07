@@ -3,14 +3,16 @@ package com.github.lernejo.korekto.toolkit.thirdparty.maven
 import com.github.lernejo.korekto.toolkit.Exercise
 import com.github.lernejo.korekto.toolkit.thirdparty.maven.invoker.CustomerInvoker
 import org.apache.maven.shared.invoker.*
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.IOException
 import java.io.UncheckedIOException
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.Callable
 import java.util.concurrent.FutureTask
-import java.util.stream.Collectors
 
 
 class MavenExecutionHandle(private val futureTask: FutureTask<MavenInvocationResult>, private val thread: Thread) :
@@ -35,8 +37,7 @@ object MavenExecutor {
 
     @JvmStatic
     fun executeGoalAsync(exercise: Exercise, workspace: Path, vararg goal: String): MavenExecutionHandle {
-        val logs = MemoryOutputHandler()
-        val callable = Callable { executeGoal(exercise, workspace, logs, *goal) }
+        val callable = Callable { executeGoal(exercise, workspace, LocalLogOutputHandler(exercise, true), *goal) }
         val futureTask = FutureTask(callable)
         val thread = Thread(futureTask)
         thread.start()
@@ -45,17 +46,19 @@ object MavenExecutor {
     }
 
     @JvmStatic
+    @JvmOverloads
     fun executeGoal(
         exercise: Exercise,
         workspace: Path,
+        logInit: Boolean = false,
         vararg goal: String
-    ): MavenInvocationResult = executeGoal(exercise, workspace, MemoryOutputHandler(), *goal)
+    ): MavenInvocationResult = executeGoal(exercise, workspace, LocalLogOutputHandler(exercise, logInit), *goal)
 
     @JvmStatic
     fun executeGoal(
         exercise: Exercise,
         workspace: Path,
-        outputHandler: MemoryOutputHandler = MemoryOutputHandler(),
+        outputHandler: LocalLogOutputHandler = LocalLogOutputHandler(exercise),
         vararg goal: String
     ): MavenInvocationResult {
         MavenResolver.declareMavenHomeIfNeeded()
@@ -70,7 +73,6 @@ object MavenExecutor {
             .setOutputHandler(outputHandler)
             .setErrorHandler(outputHandler)
         return invoke(
-            exercise,
             invoker,
             invocationRequest,
             outputHandler
@@ -78,20 +80,19 @@ object MavenExecutor {
     }
 
     private operator fun invoke(
-        exercise: Exercise,
         invoker: Invoker,
         invocationRequest: InvocationRequest,
-        logs: MemoryOutputHandler
+        logs: LocalLogOutputHandler
     ): MavenInvocationResult {
         return try {
             val javaHome = System.getProperty("java.home")
             invocationRequest.javaHome = File(javaHome)
             val result = invoker.execute(invocationRequest)
             if (result.exitCode != 0) {
-                MavenInvocationResult(MavenInvocationResult.Status.KO, logs.oneline(exercise))
-            } else MavenInvocationResult(MavenInvocationResult.Status.OK, logs.oneline(exercise))
+                MavenInvocationResult(MavenInvocationResult.Status.KO, logs.oneline())
+            } else MavenInvocationResult(MavenInvocationResult.Status.OK, logs.oneline())
         } catch (e: MavenInvocationException) {
-            MavenInvocationResult(MavenInvocationResult.Status.KO, logs.oneline(exercise))
+            MavenInvocationResult(MavenInvocationResult.Status.KO, logs.oneline())
         }
     }
 
@@ -121,40 +122,38 @@ class MavenInvocationResult(val status: Status, val output: String) {
     }
 }
 
-class MemoryOutputHandler : InvocationOutputHandler {
+class LocalLogOutputHandler(val exercise: Exercise, val logInit: Boolean = false) : InvocationOutputHandler {
+    private val logger = LoggerFactory.getLogger(LocalLogOutputHandler::class.java)
+
+    private val hostPath = exercise.root.toAbsolutePath().parent.parent.toString()
+    private val hostPathEscaped = hostPath.replace(File.separator, "\\\\")
+    private val hostPathUnix = hostPath.replace(File.separator, "/")
+
+    private val formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HH_mm_ss")
+    private val logPath = exercise.root.parent.resolve("maven-" + LocalDateTime.now().format(formatter) + ".log")
+
     @Volatile
-    var lines: MutableList<String> = ArrayList()
+    private var lines: MutableList<String> = ArrayList()
+
+    init {
+        if (logInit) {
+            logger.info("Starting Maven process > $logPath")
+        }
+        if (!Files.exists(logPath)) {
+            Files.createFile(logPath)
+        }
+    }
 
     override fun consumeLine(line: String) {
-        lines.add(line)
+        val sanitizedLine = line
+            .replace(hostPath, "")
+            .replace(hostPathEscaped, "")
+            .replace(hostPathUnix, "")
+        lines.add(sanitizedLine)
+        logPath.toFile().appendText(sanitizedLine + "\n")
     }
 
-    fun oneline(exercise: Exercise): String {
-        val path1 = exercise.root.toAbsolutePath().parent.parent.toString()
-        val path2 = path1.replace(File.separator, "\\\\")
-        val path3 = path1.replace(File.separator, "/")
-        return lines.stream()
-            .skip(3)
-            .map { s: String ->
-                s.replace(
-                    path1,
-                    ""
-                )
-            }
-            .map { s: String ->
-                s.replace(
-                    path2,
-                    ""
-                )
-            }
-            .map { s: String ->
-                s.replace(
-                    path3,
-                    ""
-                )
-            }
-            .collect(Collectors.joining("\n"))
-    }
+    fun oneline() = lines.joinToString("\n")
 }
 
 

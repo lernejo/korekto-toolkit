@@ -41,6 +41,7 @@ open class MavenCompileAndTestPartGrader<T>(
         val invocationResult = MavenExecutor.executeGoal(
             context.exercise!!,
             context.configuration.workspace,
+            true,
             "clean",
             "test-compile"
         )
@@ -52,9 +53,16 @@ open class MavenCompileAndTestPartGrader<T>(
             afterCompile(context, root)
 
             // Install project dependencies to be able to execute a module solely even if it depends on another
-            MavenExecutor.executeGoal(context.exercise!!, context.configuration.workspace, "install", "-DskipTests")
+            MavenExecutor.executeGoal(
+                context.exercise!!,
+                context.configuration.workspace,
+                false,
+                "install",
+                "-DskipTests"
+            )
 
-            val testRun = MavenExecutor.executeGoal(context.exercise!!, context.configuration.workspace, "verify")
+            val testRun =
+                MavenExecutor.executeGoal(context.exercise!!, context.configuration.workspace, false, "verify")
             if (testRun.status !== MavenInvocationResult.Status.OK) {
                 context.markAsTestFailed()
                 result(listOf("There are test failures, see `mvn verify`"), maxGrade() / 2)
