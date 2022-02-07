@@ -16,10 +16,10 @@ interface MavenContext {
     fun hasTestFailed(): Boolean
 }
 
-
-open class MavenCompileAndTestPartGrader<T>(
+open class MavenCompileAndTestPartGrader<T> @JvmOverloads constructor(
     private val name: String,
-    private val maxGrade: Double
+    private val maxGrade: Double,
+    private val testGoals: (T) -> List<String> = {listOf("verify")}
 ) : PartGrader<T> where T : GradingContext, T : MavenContext {
 
     override fun name() = name
@@ -62,7 +62,7 @@ open class MavenCompileAndTestPartGrader<T>(
             )
 
             val testRun =
-                MavenExecutor.executeGoal(context.exercise!!, context.configuration.workspace, false, "verify")
+                MavenExecutor.executeGoal(context.exercise!!, context.configuration.workspace, false, *testGoals(context).toTypedArray())
             if (testRun.status !== MavenInvocationResult.Status.OK) {
                 context.markAsTestFailed()
                 result(listOf("There are test failures, see `mvn verify`"), maxGrade() / 2)

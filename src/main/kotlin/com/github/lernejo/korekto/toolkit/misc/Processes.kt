@@ -9,6 +9,7 @@ import java.util.*
 
 object Processes {
     @JvmStatic
+    @JvmOverloads
     fun launch(command: String, workingDirectory: Path? = null): ProcessResult {
         val builder = ProcessBuilder()
         if (OS.WINDOWS.isCurrentOs) {

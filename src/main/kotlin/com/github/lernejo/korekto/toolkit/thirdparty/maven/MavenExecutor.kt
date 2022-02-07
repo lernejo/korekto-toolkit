@@ -37,7 +37,7 @@ object MavenExecutor {
 
     @JvmStatic
     fun executeGoalAsync(exercise: Exercise, workspace: Path, vararg goal: String): MavenExecutionHandle {
-        val callable = Callable { executeGoal(exercise, workspace, LocalLogOutputHandler(exercise, true), *goal) }
+        val callable = Callable { executeGoal(exercise, workspace, LocalLogOutputHandler(exercise, true, goal), *goal) }
         val futureTask = FutureTask(callable)
         val thread = Thread(futureTask)
         thread.start()
@@ -52,13 +52,13 @@ object MavenExecutor {
         workspace: Path,
         logInit: Boolean = false,
         vararg goal: String
-    ): MavenInvocationResult = executeGoal(exercise, workspace, LocalLogOutputHandler(exercise, logInit), *goal)
+    ): MavenInvocationResult = executeGoal(exercise, workspace, LocalLogOutputHandler(exercise, logInit, goal), *goal)
 
     @JvmStatic
     fun executeGoal(
         exercise: Exercise,
         workspace: Path,
-        outputHandler: LocalLogOutputHandler = LocalLogOutputHandler(exercise),
+        outputHandler: LocalLogOutputHandler,
         vararg goal: String
     ): MavenInvocationResult {
         MavenResolver.declareMavenHomeIfNeeded()
@@ -122,7 +122,7 @@ class MavenInvocationResult(val status: Status, val output: String) {
     }
 }
 
-class LocalLogOutputHandler(val exercise: Exercise, val logInit: Boolean = false) : InvocationOutputHandler {
+class LocalLogOutputHandler(val exercise: Exercise, logInit: Boolean = false, goals: Array<out String>) : InvocationOutputHandler {
     private val logger = LoggerFactory.getLogger(LocalLogOutputHandler::class.java)
 
     private val hostPath = exercise.root.toAbsolutePath().parent.parent.toString()
@@ -137,7 +137,8 @@ class LocalLogOutputHandler(val exercise: Exercise, val logInit: Boolean = false
 
     init {
         if (logInit) {
-            logger.info("Starting Maven process > $logPath")
+            val rawGoals = if(goals.size == 1) goals[0].take(50) else goals.map { it.takeLast(12) }.joinToString(" ").take(25)
+            logger.info("mvn $rawGoals > $logPath")
         }
         if (!Files.exists(logPath)) {
             Files.createFile(logPath)
