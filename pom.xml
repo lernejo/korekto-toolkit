@@ -30,7 +30,7 @@
         <maven.version>3.8.4</maven.version>
         <maven-invoker.version>3.1.0</maven-invoker.version>
         <thymeleaf.version>3.0.15.RELEASE</thymeleaf.version>
-        <pmd.version>6.42.0</pmd.version>
+        <pmd.version>6.43.0</pmd.version>
         <jakarta.xml.bind-api.version>3.0.1</jakarta.xml.bind-api.version>
         <jaxb.version>3.0.2</jaxb.version>
         <amqp-client.version>5.14.2</amqp-client.version>
