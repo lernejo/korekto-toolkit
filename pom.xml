@@ -23,7 +23,7 @@
         <snakeyaml.version>1.30</snakeyaml.version>
         <jackson.version>2.13.1</jackson.version>
         <picocli.version>4.6.3</picocli.version>
-        <jgit.version>6.0.0.202111291000-r</jgit.version>
+        <jgit.version>6.1.0.202203080745-r</jgit.version>
         <commonmark.version>0.17.0</commonmark.version>
         <github-api.version>1.302</github-api.version>
         <okhttp.version>4.9.3</okhttp.version>
