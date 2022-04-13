@@ -35,7 +35,7 @@
         <jaxb.version>3.0.2</jaxb.version>
         <amqp-client.version>5.14.2</amqp-client.version>
         <juniversalchardet.version>2.4.0</juniversalchardet.version>
-        <testcontainers.version>1.17.0</testcontainers.version>
+        <testcontainers.version>1.17.1</testcontainers.version>
 
         <junit-jupiter.version>5.8.2</junit-jupiter.version>
         <assertj-core.version>3.22.0</assertj-core.version>
