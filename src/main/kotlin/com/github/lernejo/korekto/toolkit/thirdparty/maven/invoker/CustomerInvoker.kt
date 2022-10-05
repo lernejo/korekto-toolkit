@@ -31,7 +31,7 @@ class CustomerInvoker : DefaultInvoker() {
         }
         val workingDirectory = workingDirectory
         if (workingDirectory != null) {
-            cliBuilder.workingDirectory = getWorkingDirectory()
+            cliBuilder.baseDirectory = getWorkingDirectory()
         }
         val cli: Commandline = try {
             cliBuilder.build(request)

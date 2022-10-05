@@ -74,7 +74,7 @@ enum class WorkflowRunStatus {
 }
 
 enum class WorkflowRunConclusion {
-    action_required, cancelled, failure, neutral, success, skipped, stale, timed_out
+    action_required, cancelled, failure, neutral, success, skipped, stale, startup_failure, timed_out
 }
 
 class GitHubContext(val gitHub: GitHub, val exerciseName: String) : NatureContext {
