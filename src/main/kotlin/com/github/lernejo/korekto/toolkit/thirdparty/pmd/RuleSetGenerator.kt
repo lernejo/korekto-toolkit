@@ -17,7 +17,8 @@ data class Rule private constructor(
     val clazz: String?,
     val name: String?,
     val message: String?,
-    val configuration: Map<String, Any> = mapOf()
+    val configuration: Map<String, Any> = mapOf(),
+    val exceptions: Int = 0
 ) {
 
     @JvmOverloads
@@ -30,12 +31,13 @@ data class Rule private constructor(
     )
 
     @JvmOverloads
-    constructor(clazz: Class<out Any>, message: String? = null, configuration: Map<String, Any> = mapOf()) : this(
+    constructor(clazz: Class<out Any>, message: String? = null, configuration: Map<String, Any> = mapOf(), exceptions: Int = 0) : this(
         null,
         clazz.name,
         clazz.simpleName,
         message,
-        configuration
+        configuration,
+        exceptions
     )
 
     companion object {
@@ -57,10 +59,11 @@ data class Rule private constructor(
 
         @JvmStatic
         @JvmOverloads
-        fun buildFieldMandatoryModifierRule(vararg modifiers: String = arrayOf("private", "final")) = Rule(
+        fun buildFieldMandatoryModifierRule(exceptions: Int = 0, vararg modifiers: String = arrayOf("private", "final")) = Rule(
             FieldMandatoryModifiersRule::class.java,
             null,
-            mapOf("modifiers" to modifiers.joinToString(", "))
+            mapOf("modifiers" to modifiers.joinToString(", ")),
+                exceptions
         )
     }
 }

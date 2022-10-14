@@ -21,6 +21,9 @@ class PmdPartGrader<T : GradingContext>(
             context.exercise!!,
             *rules
         )
+        val ruleTolerances = HashMap<String, Int>()
+        rules.filter { it.exceptions > 0 }.forEach { ruleTolerances[it.name!!] = it.exceptions }
+
         if (pmdReports.isEmpty()) {
             return GradePart(name(), 0.0, null, listOf("No analysis can be performed"))
         }
@@ -33,14 +36,19 @@ class PmdPartGrader<T : GradingContext>(
         for (pmdReport in sortedReports) {
             val fileReports = pmdReport.fileReports.sortedBy { fr -> fr.name }
 
-            violations += fileReports.stream().mapToLong { (_, violations1) -> violations1.size.toLong() }.sum()
             fileReports
                 .map { fr: FileReport ->
-                    fr.name + buildViolationsBlock(
+                    buildViolationsBlock(
+                        ruleTolerances,
                         fr
                     )
                 }
-                .forEach { e: String -> messages.add(e) }
+                .filter { it.violations > 0 }
+                .map {
+                    violations += it.violations
+                    it.fileReportName + it.report
+                }
+                .forEach { e -> messages.add(e) }
         }
 
         if (messages.isEmpty()) {
@@ -49,11 +57,23 @@ class PmdPartGrader<T : GradingContext>(
         return GradePart(name(), max(violations * minGrade() / 4, minGrade()), null, messages)
     }
 
-    private fun buildViolationsBlock(fileReport: FileReport) = fileReport
-        .violations
-        .sortedBy { it.beginLine * 10000 + it.beginColumn }.joinToString(
-            "\n            * ",
-            "\n            * ",
-            ""
-        ) { v -> "L." + v.beginLine + ": " + v.message.trim { it <= ' ' } }
+    data class ViolationBlock(val fileReportName: String, val report: String, val violations: Int)
+
+    private fun buildViolationsBlock(ruleTolerances: HashMap<String, Int>, fileReport: FileReport): ViolationBlock {
+        val violations = fileReport
+            .violations
+            .filter {
+                if (ruleTolerances.containsKey(it.rule)) {
+                    ruleTolerances.compute(it.rule) { _: String, v: Int? -> v!! - 1 }
+                }
+                !ruleTolerances.containsKey(it.rule) || ruleTolerances[it.rule]!! > 0
+            }
+        val report = violations
+            .sortedBy { it.beginLine * 10000 + it.beginColumn }.joinToString(
+                "\n            * ",
+                "\n            * ",
+                ""
+            ) { v -> "L." + v.beginLine + ": " + v.message.trim { it <= ' ' } }
+        return ViolationBlock(fileReport.name, report, violations.size)
+    }
 }
