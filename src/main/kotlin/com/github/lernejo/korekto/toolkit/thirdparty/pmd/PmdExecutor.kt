@@ -3,7 +3,12 @@ package com.github.lernejo.korekto.toolkit.thirdparty.pmd
 import com.github.lernejo.korekto.toolkit.Exercise
 import com.github.lernejo.korekto.toolkit.misc.writeFile
 import net.sourceforge.pmd.PMD
+import net.sourceforge.pmd.PMD.StatusCode
+import net.sourceforge.pmd.PMDConfiguration
+import net.sourceforge.pmd.cli.PmdParametersParseResult
+import net.sourceforge.pmd.cli.internal.CliMessages
 import org.slf4j.LoggerFactory
+import org.slf4j.bridge.SLF4JBridgeHandler
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -12,7 +17,14 @@ import java.util.stream.Collectors
 
 class PmdExecutor {
 
-    private val LOGGER = LoggerFactory.getLogger(PmdExecutor::class.java)
+    companion object {
+        init {
+            SLF4JBridgeHandler.removeHandlersForRootLogger()
+            SLF4JBridgeHandler.install()
+        }
+    }
+
+    private val logger = LoggerFactory.getLogger(PmdExecutor::class.java)
 
     fun runPmd(exercise: Exercise, vararg rules: Rule): List<PmdReport> {
         val ruleSet = RuleSetGenerator().generateRuleSet(*rules)
@@ -35,7 +47,7 @@ class PmdExecutor {
         val reportPath = path.writeFile("target/pmd.xml", "")
         val srcDirectory = path.resolve("src/main/java")
         if (!Files.exists(srcDirectory)) {
-            LOGGER.warn("No source directory")
+            logger.warn("No source directory")
             return null
         }
         val arguments = arrayOf(
@@ -45,12 +57,46 @@ class PmdExecutor {
             "-R", ruleSetPath.toString(),
             "-r", reportPath.toString()
         )
-        val exitCode = PMD.run(arguments)
+        val exitCode = runPmd(arguments).toInt()
         if (exitCode == 1) {
-            LOGGER.warn("PMD failed with errors")
+            logger.warn("PMD failed with errors")
             return null
         }
         return parse(reportPath)
+    }
+
+    private fun runPmd(args: Array<String>): StatusCode {
+        val parseResult = PmdParametersParseResult.extractParameters(*args)
+
+        if (parseResult.deprecatedOptionsUsed.isNotEmpty()) {
+            val (key, value) = parseResult.deprecatedOptionsUsed.entries.iterator().next()
+            logger.warn("PMD: Some deprecated options were used on the command-line, including $key")
+            logger.warn("PMD: Consider replacing it with $value")
+        }
+        if (parseResult.isError) {
+            System.err.println(parseResult.error.message)
+            System.err.println(CliMessages.runWithHelpFlagMessage())
+            return StatusCode.ERROR
+        }
+        return runPmd(parseResult.toConfiguration())
+    }
+
+    @Suppress("DEPRECATION")
+    private fun runPmd(configuration: PMDConfiguration): StatusCode {
+        val status: StatusCode = try {
+            val violations = PMD.doPMD(configuration)
+            if (violations < 0) {
+                StatusCode.ERROR
+            } else if (violations > 0 && configuration.isFailOnViolation) {
+                StatusCode.VIOLATIONS_FOUND
+            } else {
+                StatusCode.OK
+            }
+        } catch (e: Exception) {
+            System.err.println(e.message)
+            StatusCode.ERROR
+        }
+        return status
     }
 }
 
