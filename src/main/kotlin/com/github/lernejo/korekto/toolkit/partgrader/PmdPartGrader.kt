@@ -66,7 +66,7 @@ class PmdPartGrader<T : GradingContext>(
                 if (ruleTolerances.containsKey(it.rule)) {
                     ruleTolerances.compute(it.rule) { _: String, v: Int? -> v!! - 1 }
                 }
-                !ruleTolerances.containsKey(it.rule) || ruleTolerances[it.rule]!! > 0
+                !ruleTolerances.containsKey(it.rule) || ruleTolerances[it.rule]!! < 0
             }
         val report = violations
             .sortedBy { it.beginLine * 10000 + it.beginColumn }.joinToString(
