@@ -22,7 +22,7 @@
         <slf4j.version>2.0.3</slf4j.version>
         <snakeyaml.version>1.33</snakeyaml.version>
         <jackson.version>2.13.4</jackson.version>
-        <picocli.version>4.6.3</picocli.version>
+        <picocli.version>4.7.0</picocli.version>
         <jgit.version>6.3.0.202209071007-r</jgit.version>
         <commonmark.version>0.17.0</commonmark.version>
         <github-api.version>1.313</github-api.version>
