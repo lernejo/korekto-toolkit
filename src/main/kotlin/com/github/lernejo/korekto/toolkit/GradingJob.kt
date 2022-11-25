@@ -193,12 +193,15 @@ class GradingConfiguration(
 )
 
 open class GradingContext(val configuration: GradingConfiguration) : Closeable {
-    var randomSource = RandomSupplier.createRandom()
     var exercise: Exercise? = null
     val gradeDetails = GradeDetails()
     val data = mutableMapOf<String, Any>()
 
     override fun close() {
+    }
+
+    companion object {
+        var randomSource: RandomSupplier = RandomSupplier.createRandom()
     }
 }
 

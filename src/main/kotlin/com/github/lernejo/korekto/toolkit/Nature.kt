@@ -7,8 +7,7 @@ import java.util.function.Consumer
 interface Nature<CONTEXT : NatureContext> {
     fun <RESULT> withContext(action: (CONTEXT) -> RESULT): RESULT
 
-    @JvmName("inContextK")
-    private fun inContext(action: (CONTEXT) -> Unit) = withContext<Unit> {
+    fun inContextK(action: (CONTEXT) -> Unit) = withContext<Unit> {
         action(it)
         null
     }
