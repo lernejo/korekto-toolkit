@@ -60,7 +60,8 @@ class GradingJob(
         }
 
         val failedSlugs = mutableListOf<String>()
-        for (userSlug in userSlugs) {
+        val jobDurations = mutableListOf<Long>()
+        for ((jobIndex, userSlug) in userSlugs.withIndex()) {
             val gradingConfiguration = GradingConfiguration(
                 repoUrlBuilder(userSlug),
                 "",
@@ -72,7 +73,12 @@ class GradingJob(
                     .addStep("record grade") { context -> gradesBySlug[userSlug] = context.gradeDetails.grade() }
                     .addErrorListener { _, _, _ -> gradesBySlug[userSlug] = 0.0 }
 
-            val exitCode: Int = enhancedJob.run(gradingConfiguration, contextSupplier)
+            val jobStart = System.currentTimeMillis()
+            val exitCode: Int = enhancedJob.run(gradingConfiguration, contextSupplier, false)
+            val jobDuration = System.currentTimeMillis() - jobStart
+            jobDurations.add(jobDuration)
+            val eta = (jobDurations.average() * (total - jobIndex - 1)).toLong()
+            logger.info("Total in ${toString(jobDuration)}, ETA: ${toString(eta)}")
 
             if (exitCode != 0) {
                 failedSlugs.add(userSlug)
@@ -97,7 +103,8 @@ class GradingJob(
     @JvmOverloads
     fun run(
         configuration: GradingConfiguration = GradingConfiguration(),
-        contextSupplier: (GradingConfiguration) -> GradingContext = { GradingContext(it) }
+        contextSupplier: (GradingConfiguration) -> GradingContext = { GradingContext(it) },
+        displayTotalDuration: Boolean = true
     ): Int {
         val start = System.currentTimeMillis()
         val context = contextSupplier(configuration)
@@ -129,7 +136,9 @@ class GradingJob(
             deque.pollFirst().invoke(context)
         }
 
-        logger.info("Total in " + toString(System.currentTimeMillis() - start))
+        if(displayTotalDuration) {
+            logger.info("Total in " + toString(System.currentTimeMillis() - start))
+        }
 
         return exitCode
     }
