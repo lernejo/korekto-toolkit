@@ -45,7 +45,7 @@ class GradingJobLauncher : Callable<Int> {
         return when {
             group -> {
                 val slugs = Loader.loadLines(slugFile.toAbsolutePath())
-                val dryRun = System.getProperty("dryRun", "false").toBoolean()
+                val dryRun = System.getProperty("dryRun", "true").toBoolean()
                     && System.getProperty("github_token") != null
                 val gradingJob = buildGroupGradingJob(grader, AtomicInteger(), dryRun)
                 grader.use {
