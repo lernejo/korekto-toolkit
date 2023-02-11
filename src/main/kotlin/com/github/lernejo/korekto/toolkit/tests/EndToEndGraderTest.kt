@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty
 import org.junit.jupiter.params.ParameterizedTest
+import org.slf4j.LoggerFactory
 import java.nio.file.Paths
 import java.time.Instant
 import java.util.*
@@ -24,6 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
 abstract class EndToEndGraderTest {
+    private val logger = LoggerFactory.getLogger(EndToEndGraderTest::class.java)
+
     @BeforeEach
     open fun setUp() {
         val counter = AtomicInteger()
@@ -75,6 +78,12 @@ abstract class EndToEndGraderTest {
             }
             .addStep("grading", grader)
             .addStep("report") { context: GradingContext -> contextHolder.set(context) }
+            .addErrorListener { err, _, context ->
+                run {
+                    logger.warn("An error occured", err)
+                    contextHolder.set(context)
+                }
+            }
             .run(
                 configuration,
                 { grader.gradingContext(it) as GradingContext })
