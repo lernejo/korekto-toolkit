@@ -201,6 +201,7 @@ open class GradingContext(val configuration: GradingConfiguration) : Closeable {
     }
 
     companion object {
+        @JvmStatic
         var randomSource: RandomSupplier = RandomSupplier.createRandom()
     }
 }
