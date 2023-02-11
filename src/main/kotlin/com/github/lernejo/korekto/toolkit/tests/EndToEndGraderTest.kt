@@ -38,7 +38,7 @@ abstract class EndToEndGraderTest {
     }
 
     @ParameterizedTest(name = "(branch={1}) {0}")
-    @BrancheFileSource
+    @BranchFileSource
     @EnabledIfSystemProperty(named = "github_token", matches = ".+")
     fun check_project_stages(title: String?, branchName: String, expectedPayload: String?) {
         val grader: Grader<in GradingContext> = load()!!

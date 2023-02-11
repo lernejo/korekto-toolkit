@@ -1,7 +1,7 @@
 package com.github.lernejo.korekto.toolkit.tests
 
 import com.github.lernejo.korekto.toolkit.misc.SubjectForToolkitInclusion
-import com.github.lernejo.korekto.toolkit.tests.BrancheFileSource.BrancheFileSourceProvider
+import com.github.lernejo.korekto.toolkit.tests.BranchFileSource.BranchFileSourceProvider
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.ArgumentsProvider
@@ -11,6 +11,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.stream.Stream
+import kotlin.streams.asStream
 
 @SubjectForToolkitInclusion
 @Target(
@@ -22,22 +23,23 @@ import java.util.stream.Stream
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
 @ArgumentsSource(
-    BrancheFileSourceProvider::class
+    BranchFileSourceProvider::class
 )
-annotation class BrancheFileSource {
-    class BrancheFileSourceProvider : ArgumentsProvider {
+annotation class BranchFileSource {
+    class BranchFileSourceProvider : ArgumentsProvider {
         @Throws(Exception::class)
         override fun provideArguments(extensionContext: ExtensionContext): Stream<out Arguments> {
-            val branchesDirectoryUrl = BrancheFileSource::class.java.classLoader.getResource("branches")
+            val branchesDirectoryUrl = BranchFileSource::class.java.classLoader.getResource("branches")
             val branchesDirectory = Paths.get(branchesDirectoryUrl?.toURI()!!)
-            return Files.list(branchesDirectory)
-                .filter { path: Path -> Files.isRegularFile(path) }
-                .map {buildArguments(it)}
+            return branchesDirectory.toFile().walk()
+                .filter { it.isFile && it.path.endsWith(".md") }
+                .map { buildArguments(branchesDirectory, it.toPath()) }
+                .asStream()
         }
 
         @Throws(IOException::class)
-        private fun buildArguments(p: Path): Arguments {
-            val fileName = removeFileExtension(p.fileName.toString())
+        private fun buildArguments(root: Path, p: Path): Arguments {
+            val fileName = removeFileExtension(root.relativize(p).toString().replace('\\', '/', false))
             val hyphenIndex = fileName!!.indexOf('-')
             val title: String
             val branchName: String?
@@ -53,7 +55,7 @@ annotation class BrancheFileSource {
 
         companion object {
             private fun removeFileExtension(filename: String?, removeAllExtensions: Boolean = true): String? {
-                if (filename == null || filename.isEmpty()) {
+                if (filename.isNullOrEmpty()) {
                     return filename
                 }
                 val extPattern = "(?<!^)[.]" + if (removeAllExtensions) ".*" else "[^.]*$"
