@@ -4,6 +4,13 @@ import com.github.lernejo.korekto.toolkit.i18n.I18nTemplateResolver
 import com.github.lernejo.korekto.toolkit.thirdparty.pmd.rules.ExcessiveClassLengthRule
 import com.github.lernejo.korekto.toolkit.thirdparty.pmd.rules.ExcessiveMethodLengthRule
 import com.github.lernejo.korekto.toolkit.thirdparty.pmd.rules.FieldMandatoryModifiersRule
+import net.sourceforge.pmd.lang.java.rule.bestpractices.LooseCouplingRule
+import net.sourceforge.pmd.lang.java.rule.bestpractices.UnusedLocalVariableRule
+import net.sourceforge.pmd.lang.java.rule.bestpractices.UnusedPrivateFieldRule
+import net.sourceforge.pmd.lang.java.rule.bestpractices.UnusedPrivateMethodRule
+import net.sourceforge.pmd.lang.java.rule.codestyle.ClassNamingConventionsRule
+import net.sourceforge.pmd.lang.java.rule.codestyle.EmptyControlStatementRule
+import net.sourceforge.pmd.lang.java.rule.codestyle.MethodNamingConventionsRule
 import java.util.*
 
 class RuleSetGenerator {
@@ -63,7 +70,58 @@ data class Rule private constructor(
             FieldMandatoryModifiersRule::class.java,
             null,
             mapOf("modifiers" to modifiers.joinToString(", ")),
-                exceptions
+            exceptions
         )
+
+        @JvmStatic
+        @JvmOverloads
+        fun buildDependencyInversionRule() = Rule(
+            LooseCouplingRule::class.java,
+            "Dependency inversion principle not respected: type `{0}` should be replaced by its matching interface"
+        )
+
+        @JvmStatic
+        @JvmOverloads
+        fun buildUnusedLocalVariableRule() = Rule(
+            UnusedLocalVariableRule::class.java,
+            "Unused local variable: `{0}`"
+        )
+
+        @JvmStatic
+        @JvmOverloads
+        fun buildUnusedPrivateFieldRule() = Rule(
+            UnusedPrivateFieldRule::class.java,
+            "Unused private field: `{0}`"
+        )
+
+        @JvmStatic
+        @JvmOverloads
+        fun buildUnusedPrivateMethodRule() = Rule(
+            UnusedPrivateMethodRule::class.java,
+            "Unused private method: `{0}`"
+        )
+
+        @JvmStatic
+        @JvmOverloads
+        fun buildClassNamingConventionsRule() = Rule(
+            ClassNamingConventionsRule::class.java,
+            "Class name should follow UpperCamelCase convention, but `{1}` found instead"
+        )
+
+        @JvmStatic
+        @JvmOverloads
+        fun buildMethodNamingConventionsRule() = Rule(
+            MethodNamingConventionsRule::class.java,
+            "Method name should follow lowerCamelCase convention, but `{1}` found instead"
+        )
+
+        @JvmStatic
+        @JvmOverloads
+        fun buildEmptyControlStatementRule() = Rule(
+            EmptyControlStatementRule::class.java
+        )
+
+
+
     }
 }

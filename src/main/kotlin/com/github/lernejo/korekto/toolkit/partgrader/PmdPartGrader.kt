@@ -6,11 +6,13 @@ import com.github.lernejo.korekto.toolkit.PartGrader
 import com.github.lernejo.korekto.toolkit.thirdparty.pmd.FileReport
 import com.github.lernejo.korekto.toolkit.thirdparty.pmd.PmdExecutor
 import com.github.lernejo.korekto.toolkit.thirdparty.pmd.Rule
+import kotlin.math.abs
 import kotlin.math.max
 
 class PmdPartGrader<T : GradingContext>(
     private val name: String,
     private val minGrade: Double,
+    private val pointPerViolation: Double = 1.0,
     private vararg val rules: Rule
 ) : PartGrader<T> {
     override fun name() = name
@@ -54,7 +56,7 @@ class PmdPartGrader<T : GradingContext>(
         if (messages.isEmpty()) {
             messages.add("OK")
         }
-        return GradePart(name(), max(violations * minGrade() / 4, minGrade()), null, messages)
+        return GradePart(name(), max(-1 * violations * abs(pointPerViolation), minGrade()), null, messages)
     }
 
     data class ViolationBlock(val fileReportName: String, val report: String, val violations: Int)
