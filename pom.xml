@@ -22,7 +22,7 @@
         <slf4j.version>2.0.6</slf4j.version>
         <jackson.version>2.14.2</jackson.version>
         <picocli.version>4.7.1</picocli.version>
-        <jgit.version>6.4.0.202211300538-r</jgit.version>
+        <jgit.version>6.5.0.202303070854-r</jgit.version>
         <commonmark.version>0.17.0</commonmark.version>
         <github-api.version>1.314</github-api.version>
         <okhttp.version>4.10.0</okhttp.version>
