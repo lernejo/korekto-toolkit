@@ -73,6 +73,7 @@ abstract class EndToEndGraderTest {
                     .get()
                     .inContextK {
                         it.git.reset().setMode(ResetCommand.ResetType.HARD).call()
+                        it.git.clean().setCleanDirectories(true).setForce(true).call()
                         it.checkout(branchName)
                     }
             }

@@ -151,9 +151,8 @@ object GitRepository {
         }
         fetchCommand
             .call()
-        git.reset()
-            .setMode(ResetCommand.ResetType.HARD)
-            .setRef(ref)
-            .call()
+        git.reset().setMode(ResetCommand.ResetType.HARD).call()
+        git.clean().setCleanDirectories(true).setForce(true).call()
+        git.pull().call()
     }
 }
