@@ -19,7 +19,7 @@
         <kotlin.compiler.jvmTarget>16</kotlin.compiler.jvmTarget>
         <kotlin.version>1.9.10</kotlin.version>
 
-        <slf4j.version>2.0.7</slf4j.version>
+        <slf4j.version>2.0.9</slf4j.version>
         <jackson.version>2.15.2</jackson.version>
         <picocli.version>4.7.5</picocli.version>
         <jgit.version>6.6.0.202305301015-r</jgit.version>
