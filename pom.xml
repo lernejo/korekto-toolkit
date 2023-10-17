@@ -25,7 +25,7 @@
         <jgit.version>6.7.0.202309050840-r</jgit.version>
         <commonmark.version>0.17.0</commonmark.version>
         <github-api.version>1.316</github-api.version>
-        <okhttp.version>4.11.0</okhttp.version>
+        <okhttp.version>4.12.0</okhttp.version>
         <maven.version>3.9.5</maven.version>
         <maven-invoker.version>3.2.0</maven-invoker.version>
         <thymeleaf.version>3.1.2.RELEASE</thymeleaf.version>
