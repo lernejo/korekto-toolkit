@@ -31,7 +31,7 @@
         <thymeleaf.version>3.1.2.RELEASE</thymeleaf.version>
         <pmd.version>6.55.0</pmd.version>
         <jakarta.xml.bind-api.version>4.0.1</jakarta.xml.bind-api.version>
-        <jaxb.version>4.0.3</jaxb.version>
+        <jaxb.version>4.0.4</jaxb.version>
         <amqp-client.version>5.19.0</amqp-client.version>
         <juniversalchardet.version>2.4.0</juniversalchardet.version>
         <testcontainers.version>1.19.1</testcontainers.version>
