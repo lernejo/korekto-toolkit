@@ -1,2 +1,3 @@
 com.github.lernejo.korekto.toolkit.thirdparty.git.GitNatureFactory
 com.github.lernejo.korekto.toolkit.thirdparty.github.GitHubNatureFactory
+com.github.lernejo.korekto.toolkit.thirdparty.maven.MavenNatureFactory
