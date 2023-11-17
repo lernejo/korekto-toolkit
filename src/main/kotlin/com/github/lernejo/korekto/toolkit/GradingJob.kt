@@ -144,10 +144,10 @@ class GradingJob(
     }
 }
 
+@JvmDefaultWithCompatibility
 fun interface GradingStep<T : GradingContext> {
     fun run(context: T)
 
-    @JvmDefault
     fun close(context: T) {
     }
 }
