@@ -135,7 +135,7 @@ internal class InternalViolationReport(
             begincolumn,
             endline,
             endcolumn,
-            packageName!!,
+            packageName ?: "",
             className!!,
             method,
             variable,
