@@ -4,11 +4,14 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.lernejo.korekto.toolkit.i18n.I18nTemplateResolver
 import com.github.lernejo.korekto.toolkit.thirdparty.git.ExerciseCloner
+import com.github.lernejo.korekto.toolkit.thirdparty.git.GitNature
 import com.github.lernejo.korekto.toolkit.thirdparty.github.GitHubContext
 import com.github.lernejo.korekto.toolkit.thirdparty.github.GitHubNature
+import org.eclipse.jgit.api.ResetCommand
 import org.kohsuke.github.GHIssue
 import org.kohsuke.github.GHIssueState
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.net.ConnectException
 import java.net.URI
 import java.net.http.HttpClient
@@ -16,6 +19,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.nio.file.Path
 import java.time.Instant
 import java.util.*
 
@@ -23,11 +27,28 @@ internal val objectMapper = ObjectMapper()
     .findAndRegisterModules()
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
-class CloneStep(private val forcePull: Boolean) : GradingStep<GradingContext> {
+class CloneStep(private val forcePull: Boolean, private val branch: String? = null, private val localRepo: Path? = null) : GradingStep<GradingContext> {
     override fun run(context: GradingContext) {
-        context.exercise =
-            ExerciseCloner(context.configuration.workspace).gitClone(context.configuration.repoUrl, forcePull)
+        if(localRepo != null) {
+            context.exercise = Exercise(extractSlug(localRepo), localRepo)
+        } else {
+            val exercise =
+                ExerciseCloner(context.configuration.workspace).gitClone(context.configuration.repoUrl, forcePull)
+            context.exercise = exercise
+
+            branch?.let { branchName ->
+                exercise
+                    .lookupNature(GitNature::class.java)
+                    .get()
+                    .inContextK {
+                        it.git.reset().setMode(ResetCommand.ResetType.HARD).call()
+                        it.checkout(branchName)
+                    }
+            }
+        }
     }
+
+    private fun extractSlug(path: Path) = path.toString().split(File.separator).takeLast(2).joinToString("/")
 
     override fun close(context: GradingContext) {
         context.exercise?.close()

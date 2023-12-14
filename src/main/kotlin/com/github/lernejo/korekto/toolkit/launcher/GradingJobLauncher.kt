@@ -13,6 +13,8 @@ import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.io.path.absolute
+import kotlin.jvm.optionals.getOrNull
 import kotlin.system.exitProcess
 
 @CommandLine.Command(
@@ -22,7 +24,7 @@ import kotlin.system.exitProcess
 )
 class GradingJobLauncher : Callable<Int> {
 
-    @CommandLine.Option(names = ["-g", "--group"], description = ["grade several exercices based on a slug file"])
+    @CommandLine.Option(names = ["-g", "--group"], description = ["grade several exercises based on a slug file"])
     var group: Boolean = false
 
     @CommandLine.Option(
@@ -37,6 +39,9 @@ class GradingJobLauncher : Callable<Int> {
 
     @CommandLine.Option(names = ["-s", "--slug"], description = ["slug to grade exercise from"])
     var slug: Optional<String> = Optional.empty()
+
+    @CommandLine.Option(names = ["--local-repo"], description = ["Local Git repository, if set, will not clone"])
+    var localRepo: Optional<Path> = Optional.empty()
 
     override fun call(): Int {
         val grader = Grader.load() ?: throw IllegalArgumentException("No Grader implementation declared")
@@ -61,12 +66,13 @@ class GradingJobLauncher : Callable<Int> {
             slug.isPresent -> {
                 val repoUrl = grader.slugToRepoUrl(slug.get())
                 val configuration = GradingConfiguration(repoUrl, "", "")
-                if (resetWorkspace) {
+                val branch = System.getProperty("git.branch")
+                if (resetWorkspace && localRepo.isEmpty) {
                     OS.CURRENT_OS?.deleteDirectoryCommand(configuration.workspace)
                         ?.let { Processes.launch(it, null) }
                 }
                 grader.use {
-                    buildLocalGradingJob(grader).run(configuration, grader::gradingContext)
+                    buildLocalGradingJob(grader, branch, localRepo).run(configuration, grader::gradingContext)
                 }
             }
             else -> {
@@ -84,8 +90,8 @@ class GradingJobLauncher : Callable<Int> {
         .addStoreResultsLocallyStep()
         .addUpsertGitHubIssuesStep(Locale.FRENCH, grader::deadline, dryRun)
 
-    private fun buildLocalGradingJob(grader: Grader<GradingContext>) = GradingJob()
-        .addCloneStep(forcePull)
+    private fun buildLocalGradingJob(grader: Grader<GradingContext>, branch: String?, localRepo: Optional<Path>) = GradingJob()
+        .addCloneStep(forcePull, branch, localRepo.getOrNull()?.absolute())
         .addStep("grading", grader)
         .addStoreResultsLocallyStep()
         .addUpsertGitHubIssuesStep(Locale.FRENCH, grader::deadline, dryRun = true)
