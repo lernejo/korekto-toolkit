@@ -56,6 +56,7 @@ class GradingJobLauncher : Callable<Int> {
                 grader.use {
                     gradingJob.runBatch(
                         slugs,
+                        grader.name(),
                         grader::slugToRepoUrl,
                         resetWorkspace = resetWorkspace,
                         contextSupplier = grader::gradingContext

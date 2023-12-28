@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.util.*
 import java.util.stream.Collectors
 
@@ -31,4 +32,11 @@ object Loader {
 
     fun toString(inputStream: InputStream): String =
         Scanner(inputStream, StandardCharsets.UTF_8).use { scanner -> scanner.useDelimiter("\\A").next() }
+
+    fun copyPathToFile(classPath: String, targetFilePath: String) {
+        val targetPath = Paths.get(targetFilePath)
+        Loader::class.java.classLoader.getResourceAsStream(classPath)!!.use {
+            Files.copy(it, targetPath, StandardCopyOption.REPLACE_EXISTING)
+        }
+    }
 }

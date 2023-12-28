@@ -2,6 +2,7 @@ package com.github.lernejo.korekto.toolkit
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.github.lernejo.korekto.toolkit.i18n.I18nTemplateResolver
 import com.github.lernejo.korekto.toolkit.thirdparty.git.ExerciseCloner
 import com.github.lernejo.korekto.toolkit.thirdparty.git.GitNature
@@ -23,8 +24,9 @@ import java.nio.file.Path
 import java.time.Instant
 import java.util.*
 
-internal val objectMapper = ObjectMapper()
+val objectMapper: ObjectMapper = ObjectMapper()
     .findAndRegisterModules()
+    .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
 class CloneStep(private val forcePull: Boolean, private val branch: String? = null, private val localRepo: Path? = null) : GradingStep<GradingContext> {

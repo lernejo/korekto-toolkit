@@ -1,19 +1,21 @@
 package com.github.lernejo.korekto.toolkit
 
+import com.fasterxml.jackson.annotation.JsonGetter
 import com.github.lernejo.korekto.toolkit.launcher.GradingJobLauncher
-import com.github.lernejo.korekto.toolkit.misc.AsciiHistogram
+import com.github.lernejo.korekto.toolkit.misc.*
 import com.github.lernejo.korekto.toolkit.misc.HumanReadableDuration.toString
-import com.github.lernejo.korekto.toolkit.misc.Maths
-import com.github.lernejo.korekto.toolkit.misc.OS
 import com.github.lernejo.korekto.toolkit.misc.Processes.launch
-import com.github.lernejo.korekto.toolkit.misc.RandomSupplier
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.Instant
+import java.time.OffsetDateTime
 import java.util.*
 import java.util.stream.Collectors
+import kotlin.io.path.createParentDirectories
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.exists
 import kotlin.math.max
 import kotlin.math.min
 
@@ -30,7 +32,8 @@ class GradingJob(
         GradingJob(steps.plus(NamedStep(name, step)), onErrorListeners)
 
     @JvmOverloads
-    fun addCloneStep(forcePull: Boolean = true, branch: String? = null, localRepo: Path? = null) = addStep(if(localRepo == null)  "cloning" else "Using local repo", CloneStep(forcePull, branch, localRepo))
+    fun addCloneStep(forcePull: Boolean = true, branch: String? = null, localRepo: Path? = null) =
+        addStep(if (localRepo == null) "cloning" else "Using local repo", CloneStep(forcePull, branch, localRepo))
 
     @JvmOverloads
     fun addUpsertGitHubIssuesStep(locale: Locale, deadline: (GradingContext) -> Instant?, dryRun: Boolean = false) =
@@ -45,6 +48,7 @@ class GradingJob(
     @JvmOverloads
     fun runBatch(
         userSlugs: List<String>,
+        graderName: String,
         repoUrlBuilder: (String) -> String,
         workspace: Path = Paths.get("target/repositories"),
         resetWorkspace: Boolean = false,
@@ -59,6 +63,7 @@ class GradingJob(
             OS.CURRENT_OS?.deleteDirectoryCommand(workspace)?.let { launch(it, null) }
         }
 
+        val batchResultBuilder = BatchResult.builder(graderName)
         val failedSlugs = mutableListOf<String>()
         val jobDurations = mutableListOf<Long>()
         for ((jobIndex, userSlug) in userSlugs.withIndex()) {
@@ -70,8 +75,19 @@ class GradingJob(
             )
             val enhancedJob: GradingJob =
                 insertPreStep("add slug") { context -> context.data["slug"] = userSlug }
-                    .addStep("record grade") { context -> gradesBySlug[userSlug] = context.gradeDetails.grade() }
-                    .addErrorListener { _, _, _ -> gradesBySlug[userSlug] = 0.0 }
+                    .addStep("record grade") { context ->
+                        gradesBySlug[userSlug] = context.gradeDetails.grade()
+                        batchResultBuilder.addOwner(userSlug, context.gradeDetails)
+                    }
+                    .addErrorListener { ex, _, _ ->
+                        run {
+                            gradesBySlug[userSlug] = 0.0
+                            batchResultBuilder.addOwner(
+                                userSlug,
+                                GradeDetails(mutableListOf(GradePart("<init>", 0.0, null, listOf(ex.message ?: ""))))
+                            )
+                        }
+                    }
 
             val jobStart = System.currentTimeMillis()
             val exitCode: Int = enhancedJob.run(gradingConfiguration, contextSupplier, false)
@@ -85,6 +101,9 @@ class GradingJob(
                 failure++
             }
         }
+        batchResultBuilder.build().writeOnFile("target/site/batchResult.json")
+        Loader.copyPathToFile("site/index.html", "target/site/index.html")
+
         val grades: List<Double> = gradesBySlug.values.toList()
 
         logger.info("All done in " + toString(System.currentTimeMillis() - start))
@@ -124,6 +143,7 @@ class GradingJob(
                     } else {
                         logger.warn(e.message, e)
                     }
+
                     else -> logger.error(e.message, e)
                 }
                 exitCode = 1
@@ -136,7 +156,7 @@ class GradingJob(
             deque.pollFirst().invoke(context)
         }
 
-        if(displayTotalDuration) {
+        if (displayTotalDuration) {
             logger.info("Total in " + toString(System.currentTimeMillis() - start))
         }
 
@@ -153,6 +173,8 @@ fun interface GradingStep<T : GradingContext> {
 }
 
 interface Grader<T : GradingContext> : GradingStep<T>, Closeable {
+
+    fun name(): String
 
     fun slugToRepoUrl(slug: String): String
 
@@ -207,7 +229,10 @@ open class GradingContext(val configuration: GradingConfiguration) : Closeable {
 }
 
 data class GradeDetails(val parts: MutableList<GradePart> = ArrayList()) {
+    @JsonGetter
     fun grade() = max(Maths.round(parts.map { p -> p.grade }.sum(), 2), 0.0)
+
+    @JsonGetter
     fun maxGrade() = Maths.round(parts.map { p -> p.maxGrade ?: 0.0 }.sum(), 2)
 }
 
@@ -231,4 +256,40 @@ interface PartGrader<T : GradingContext> {
     fun result(explanations: List<String>, grade: Double): GradePart {
         return GradePart(name(), min(max(minGrade(), grade), maxGrade() ?: 0.0), maxGrade(), explanations)
     }
+}
+
+data class BatchResult(val name: String, val owners: Map<String, OwnerResult>, val time: OffsetDateTime) {
+    companion object {
+        fun builder(name: String): BatchResultBuilder = BatchResultBuilder(name)
+    }
+
+    fun writeOnFile(filePath: String) {
+        val content = objectMapper.writeValueAsString(this)
+        val outputFilePath = Paths.get(filePath)
+        if (outputFilePath.exists()) {
+            outputFilePath.deleteIfExists()
+        }
+        outputFilePath.createParentDirectories()
+        outputFilePath.toFile().writeText(content)
+    }
+}
+
+data class OwnerResult(val owner: String, val gradeDetails: GradeDetails)
+
+class BatchResultBuilder(val name: String) {
+    private val owners: MutableList<OwnerResult> = mutableListOf()
+
+    fun addOwner(owner: String, gradeDetails: GradeDetails) {
+        val existingRecord = owners.firstOrNull { it.owner == owner }
+        if (existingRecord != null && existingRecord.gradeDetails.grade() < gradeDetails.grade()) {
+            owners.remove(existingRecord)
+            owners.add(OwnerResult(owner, gradeDetails))
+        } else {
+            owners.add(OwnerResult(owner, gradeDetails))
+        }
+    }
+
+    fun build(): BatchResult = BatchResult(name,
+        owners.sortedBy { it.owner }.associateBy { it.owner }, OffsetDateTime.now()
+    )
 }
