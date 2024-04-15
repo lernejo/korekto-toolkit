@@ -11,6 +11,7 @@ import net.sourceforge.pmd.lang.java.rule.bestpractices.UnusedPrivateMethodRule
 import net.sourceforge.pmd.lang.java.rule.codestyle.ClassNamingConventionsRule
 import net.sourceforge.pmd.lang.java.rule.codestyle.EmptyControlStatementRule
 import net.sourceforge.pmd.lang.java.rule.codestyle.MethodNamingConventionsRule
+import net.sourceforge.pmd.lang.java.rule.design.NcssCountRule
 import java.util.*
 
 class RuleSetGenerator {
@@ -52,7 +53,7 @@ data class Rule private constructor(
         @JvmOverloads
         fun buildExcessiveClassLengthRule(max: Int, toleranceMargin: Int = 2) = Rule(
             ExcessiveClassLengthRule::class.java,
-            "Class has {0} lines, exceeding the maximum of $max",
+            "{0} {1} has exceeding the maximum of $max lines (recorded {3} lines)",
             mapOf("minimum" to max + toleranceMargin)
         )
 
@@ -60,7 +61,7 @@ data class Rule private constructor(
         @JvmOverloads
         fun buildExcessiveMethodLengthRule(max: Int, toleranceMargin: Int = 2) = Rule(
             ExcessiveMethodLengthRule::class.java,
-            "Method has {0} lines, exceeding the maximum of $max",
+            "{0} {1} has exceeding the maximum of $max lines (recorded {3} lines)",
             mapOf("minimum" to max + toleranceMargin)
         )
 

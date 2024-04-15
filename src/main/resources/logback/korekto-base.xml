@@ -7,10 +7,11 @@
         </encoder>
     </appender>
 
-    <logger name="org.eclipse" level="ERROR"/>
-    <logger name="org.thymeleaf" level="WARN"/>
     <logger name="com.github.dockerjava" level="WARN"/>
+    <logger name="org.eclipse" level="ERROR"/>
+    <logger name="net.sourceforge.pmd" level="WARN"/>
     <logger name="org.testcontainers" level="WARN"/>
+    <logger name="org.thymeleaf" level="WARN"/>
 
     <root level="debug">
         <appender-ref ref="STDOUT"/>

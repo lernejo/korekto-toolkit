@@ -2,13 +2,14 @@ package com.github.lernejo.korekto.toolkit.thirdparty.pmd.rules
 
 import net.sourceforge.pmd.lang.ast.Node
 import net.sourceforge.pmd.lang.java.ast.*
-import net.sourceforge.pmd.lang.java.rule.AbstractJavaRule
+import net.sourceforge.pmd.lang.java.rule.AbstractJavaRulechainRule
+import net.sourceforge.pmd.properties.PropertyConstraint
 import net.sourceforge.pmd.properties.PropertyDescriptor
 import net.sourceforge.pmd.properties.PropertyFactory
 import org.apache.commons.lang3.StringUtils
 import java.util.*
 
-class FieldMandatoryModifiersRule : AbstractJavaRule() {
+class FieldMandatoryModifiersRule : AbstractJavaRulechainRule(ASTFieldDeclaration::class.java) {
     private val modifiersToComply: Set<ModifierMeta> by lazy {
         getProperty(MODIFIERS_PROPERTY).map { descriptor: String -> ModifierMeta(descriptor) }.toSet()
     }
@@ -17,22 +18,22 @@ class FieldMandatoryModifiersRule : AbstractJavaRule() {
         val modifiers: MutableSet<Modifier> = EnumSet.noneOf(
             Modifier::class.java
         )
-        if (node.isSyntacticallyPublic) {
+        if (node.modifiers.explicitModifiers.contains(JModifier.PUBLIC)) {
             modifiers.add(Modifier.PUBLIC)
         }
-        if (node.isSyntacticallyStatic) {
+        if (node.modifiers.explicitModifiers.contains(JModifier.STATIC)) {
             modifiers.add(Modifier.STATIC)
         }
-        if (node.isSyntacticallyFinal) {
+        if (node.modifiers.effectiveModifiers.contains(JModifier.FINAL)) {
             modifiers.add(Modifier.FINAL)
         }
-        if (node.isPrivate) {
+        if (node.modifiers.effectiveModifiers.contains(JModifier.PRIVATE)) {
             modifiers.add(Modifier.PRIVATE)
         }
-        if (node.isAbstract) {
+        if (node.modifiers.effectiveModifiers.contains(JModifier.ABSTRACT)) {
             modifiers.add(Modifier.ABSTRACT)
         }
-        if (node.isProtected) {
+        if (node.modifiers.effectiveModifiers.contains(JModifier.PROTECTED)) {
             modifiers.add(Modifier.PROTECTED)
         }
         val missings: MutableSet<Modifier> = EnumSet.noneOf(
@@ -42,14 +43,14 @@ class FieldMandatoryModifiersRule : AbstractJavaRule() {
             Modifier::class.java
         )
         modifiersToComply.forEach { m ->
-            if ( m.forbidden && modifiers.contains(m.modifier)) {
+            if (m.forbidden && modifiers.contains(m.modifier)) {
                 illegals.add(m.modifier!!)
             } else if (!m.forbidden && !modifiers.contains(m.modifier)) {
                 missings.add(m.modifier!!)
             }
         }
         if (missings.isNotEmpty() || illegals.isNotEmpty()) {
-            addViolationWithMessage(data, node, formatExplanation(node, missings, illegals))
+            this.asCtx(data).addViolationWithMessage(node, formatExplanation(node, missings, illegals))
         }
         return data
     }
@@ -80,18 +81,22 @@ class FieldMandatoryModifiersRule : AbstractJavaRule() {
 
     private fun getPrintableNodeKind(node: Node): String {
         return when (node) {
-            is ASTAnyTypeDeclaration -> {
-                node.typeKind.printableName
-            }
-            is MethodLikeNode -> {
-                node.kind.printableName
-            }
             is ASTFieldDeclaration -> {
-                "field `" + node.getFirstChildOfType(ASTVariableDeclarator::class.java).name + '`'
+                "field `" + node.varIds.firstOrThrow().name + '`'
             }
+
+            is ASTTypeDeclaration -> {
+                node.canonicalName ?: (node.packageName + "<anonymous>")
+            }
+
+            is ASTMethodDeclaration -> {
+                node.name
+            }
+
             is ASTResource -> {
                 "resource specification"
             }
+
             else -> throw UnsupportedOperationException("Node $node is unaccounted for")
         }
     }
@@ -104,12 +109,12 @@ class FieldMandatoryModifiersRule : AbstractJavaRule() {
         }
     }
 
-    internal class ModifierMeta constructor(descriptor: String) {
+    internal class ModifierMeta(descriptor: String) {
         internal val forbidden: Boolean = startsWithExclamation(descriptor)
         internal var modifier: Modifier? = null
 
         companion object {
-            private val NAMES = Modifier.values().map { obj: Modifier -> obj.name }
+            private val NAMES = Modifier.entries.map { obj: Modifier -> obj.name }
                 .map { obj: String -> obj.lowercase(Locale.getDefault()) }.toSet()
 
             private fun startsWithExclamation(descriptor: String): Boolean {
@@ -135,11 +140,10 @@ class FieldMandatoryModifiersRule : AbstractJavaRule() {
             PropertyFactory.stringListProperty("modifiers")
                 .desc("List of field mandatory modifiers, ! to forbid them")
                 .defaultValue(listOf("final", "!static"))
-                .delim(',')
                 .requireEach(
-                    fromPredicate(
+                    PropertyConstraint.fromPredicate(
                         { descriptor: String -> ModifierMeta.isValid(descriptor) },
-                        "Should be contained in " + listOf(*Modifier.values())
+                        "Should be contained in " + Modifier.entries
                     )
                 )
                 .build()
@@ -147,6 +151,5 @@ class FieldMandatoryModifiersRule : AbstractJavaRule() {
 
     init {
         definePropertyDescriptor(MODIFIERS_PROPERTY)
-        addRuleChainVisit(ASTFieldDeclaration::class.java)
     }
 }
