@@ -4,6 +4,7 @@ import com.github.lernejo.korekto.toolkit.WarningException
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.api.errors.GitAPIException
+import org.eclipse.jgit.api.errors.InvalidRemoteException
 import org.eclipse.jgit.api.errors.JGitInternalException
 import org.eclipse.jgit.api.errors.NoHeadException
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
@@ -57,7 +58,7 @@ object GitRepository {
         } else {
             val uriMatcher = URI_WITHOUT_CRED_PATTERN.matcher(uri)
             if (uriMatcher.matches()) {
-                uriMatcher.group("protocol") + token + "@" + uriMatcher.group("hostAndMore")
+                uriMatcher.group("protocol") + "x-access-token:" + token + "@" + uriMatcher.group("hostAndMore")
             } else {
                 uri
             }
@@ -85,6 +86,8 @@ object GitRepository {
                 .call()
             LOGGER.debug("Cloning in: " + git.repository.directory)
             git
+        } catch(e: InvalidRemoteException) {
+            throw WarningException("Unable to clone in ${path.toAbsolutePath()}: Missing or inaccessible repository", e)
         } catch (e: GitAPIException) {
             throw buildWarningException(path, e)
         } catch (e: JGitInternalException) {
