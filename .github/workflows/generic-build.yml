@@ -5,7 +5,7 @@ on:
     inputs:
       java-version:
         type: string
-        default: 17
+        default: '17'
     secrets:
       GH_TOKEN_REPO:
         required: true
@@ -15,16 +15,16 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v2
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: ${{ inputs.java-version }}
-      - uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          cache: maven
+
       - run: ./mvnw -U test -Dgithub_token=${{ secrets.GH_TOKEN_REPO }} -DfailIfNoTests
-      - uses: codecov/codecov-action@v3
+
+      - uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
