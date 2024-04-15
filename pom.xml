@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.lernejo</groupId>
     <artifactId>korekto-toolkit</artifactId>
-    <version>1.4.1</version>
+    <version>1.4.2-SNAPSHOT</version>
 
     <name>Korekto-Toolkit</name>
     <description>Collection of utilities to grade IT exercises</description>
