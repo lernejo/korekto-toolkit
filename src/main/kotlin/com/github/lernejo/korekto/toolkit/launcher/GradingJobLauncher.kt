@@ -43,6 +43,9 @@ class GradingJobLauncher : Callable<Int> {
     @CommandLine.Option(names = ["--local-repo"], description = ["Local Git repository, if set, will not clone"])
     var localRepo: Optional<Path> = Optional.empty()
 
+    @CommandLine.Option(names = ["-r", "--report-file"], description = ["Path of the report file to create"])
+    var reportFile: Optional<Path> = Optional.empty()
+
     override fun call(): Int {
         val grader = Grader.load() ?: throw IllegalArgumentException("No Grader implementation declared")
         val resetWorkspace = grader.needsWorkspaceReset()
@@ -73,7 +76,7 @@ class GradingJobLauncher : Callable<Int> {
                         ?.let { Processes.launch(it, null) }
                 }
                 grader.use {
-                    buildLocalGradingJob(grader, branch, localRepo).run(configuration, grader::gradingContext)
+                    buildLocalGradingJob(grader, branch, localRepo, reportFile).run(configuration, grader::gradingContext)
                 }
             }
             else -> {
@@ -91,10 +94,10 @@ class GradingJobLauncher : Callable<Int> {
         .addStoreResultsLocallyStep()
         .addUpsertGitHubIssuesStep(Locale.FRENCH, grader::deadline, dryRun)
 
-    private fun buildLocalGradingJob(grader: Grader<GradingContext>, branch: String?, localRepo: Optional<Path>) = GradingJob()
+    private fun buildLocalGradingJob(grader: Grader<GradingContext>, branch: String?, localRepo: Optional<Path>, reportPath: Optional<Path>) = GradingJob()
         .addCloneStep(forcePull, branch, localRepo.getOrNull()?.absolute())
         .addStep("grading", grader)
-        .addStoreResultsLocallyStep()
+        .addStoreResultsLocallyStep(reportPath.getOrNull()?.absolute())
         .addUpsertGitHubIssuesStep(Locale.FRENCH, grader::deadline, dryRun = true)
 
     private fun buildContainerizedGradingJob(grader: Grader<GradingContext>) = GradingJob()

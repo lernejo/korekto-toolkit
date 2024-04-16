@@ -40,7 +40,7 @@ class GradingJob(
         addStep("upsert GH issues", UpsertGitHubGradingIssues(locale, deadline, dryRun))
 
     fun addSendStep() = addStep("sending results", SendStep())
-    fun addStoreResultsLocallyStep() = addStep("writing results", StoreResultsLocally())
+    fun addStoreResultsLocallyStep(reportPath: Path? = null) = addStep("writing results", StoreResultsLocally(reportPath))
 
     fun addErrorListener(errorListener: OnErrorListener) =
         GradingJob(steps, onErrorListeners.plus(errorListener))

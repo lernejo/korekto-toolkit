@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.github.lernejo.korekto.toolkit.i18n.I18nTemplateResolver
 import com.github.lernejo.korekto.toolkit.thirdparty.git.ExerciseCloner
 import com.github.lernejo.korekto.toolkit.thirdparty.git.GitNature
+import com.github.lernejo.korekto.toolkit.thirdparty.git.GitRepository
 import com.github.lernejo.korekto.toolkit.thirdparty.github.GitHubContext
 import com.github.lernejo.korekto.toolkit.thirdparty.github.GitHubNature
 import org.eclipse.jgit.api.ResetCommand
@@ -29,9 +30,13 @@ val objectMapper: ObjectMapper = ObjectMapper()
     .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
-class CloneStep(private val forcePull: Boolean, private val branch: String? = null, private val localRepo: Path? = null) : GradingStep<GradingContext> {
+class CloneStep(
+    private val forcePull: Boolean,
+    private val branch: String? = null,
+    private val localRepo: Path? = null
+) : GradingStep<GradingContext> {
     override fun run(context: GradingContext) {
-        if(localRepo != null) {
+        if (localRepo != null) {
             context.exercise = Exercise(extractSlug(localRepo), localRepo)
         } else {
             val exercise =
@@ -59,15 +64,21 @@ class CloneStep(private val forcePull: Boolean, private val branch: String? = nu
 
 data class Payload(val action: String, val details: GradeDetails)
 
-class StoreResultsLocally : GradingStep<GradingContext> {
+class StoreResultsLocally(private val reportPath: Path?) : GradingStep<GradingContext> {
+    private val logger = LoggerFactory.getLogger(StoreResultsLocally::class.java)
+
     override fun run(context: GradingContext) {
+        if (reportPath != null) {
+            Files.createDirectories(reportPath.parent)
+        }
         val content = objectMapper.writeValueAsString(Payload("grading", context.gradeDetails))
-        val outputFilePath = context.configuration.workspace.resolve(context.exercise?.name + ".json")
+        val outputFilePath = reportPath ?: context.configuration.workspace.resolve(context.exercise?.name + ".json")
         if (!Files.exists(outputFilePath.parent)) {
             Files.createDirectories(outputFilePath.parent)
         }
 
         outputFilePath.toFile().writeText(content)
+        logger.info("Storing result in: $outputFilePath")
     }
 }
 
