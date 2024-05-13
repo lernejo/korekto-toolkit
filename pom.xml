@@ -27,7 +27,7 @@
         <github-api.version>1.321</github-api.version>
         <okhttp.version>4.12.0</okhttp.version>
         <maven.version>3.9.6</maven.version>
-        <maven-invoker.version>3.2.0</maven-invoker.version>
+        <maven-invoker.version>3.3.0</maven-invoker.version>
         <thymeleaf.version>3.1.2.RELEASE</thymeleaf.version>
         <pmd.version>7.1.0</pmd.version>
         <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
