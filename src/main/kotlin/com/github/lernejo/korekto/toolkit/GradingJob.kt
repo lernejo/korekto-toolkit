@@ -5,6 +5,7 @@ import com.github.lernejo.korekto.toolkit.launcher.GradingJobLauncher
 import com.github.lernejo.korekto.toolkit.misc.*
 import com.github.lernejo.korekto.toolkit.misc.HumanReadableDuration.toString
 import com.github.lernejo.korekto.toolkit.misc.Processes.launch
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.nio.file.Path
@@ -174,6 +175,9 @@ fun interface GradingStep<T : GradingContext> {
 
 interface Grader<T : GradingContext> : GradingStep<T>, Closeable {
 
+    private val logger: Logger
+        get() = LoggerFactory.getLogger(Grader::class.java)
+
     fun name(): String
 
     fun slugToRepoUrl(slug: String): String
@@ -183,6 +187,27 @@ interface Grader<T : GradingContext> : GradingStep<T>, Closeable {
     fun deadline(context: GradingContext): Instant? = null
 
     fun gradingContext(configuration: GradingConfiguration): T = GradingContext(configuration) as T
+
+    override fun run(context: T) {
+        context.gradeDetails.parts.addAll(grade(context))
+    }
+
+    fun grade(context: T): Collection<GradePart> {
+        return graders().stream()
+            .map { g: PartGrader<T> -> applyPartGrader(context, g) }
+            .toList()
+    }
+
+    fun applyPartGrader(context: T, g: PartGrader<T>): GradePart {
+        val startTime = System.currentTimeMillis()
+        try {
+            return g.grade(context)
+        } finally {
+            logger.debug("{} in {}", g.name(), toString(System.currentTimeMillis() - startTime))
+        }
+    }
+
+    fun graders(): Collection<PartGrader<T>>
 
     override fun close() {}
 
