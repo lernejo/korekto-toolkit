@@ -36,11 +36,7 @@ internal fun parse(reportPath: Path): PmdReport? {
         val jaxbContext: JAXBContext = JAXBContext.newInstance(InternalPmdReport::class.java)
         val internalPmdReport =
             jaxbContext.createUnmarshaller().unmarshal(fixedReportPath.toFile()) as InternalPmdReport
-        if (internalPmdReport.files != null) {
-            internalPmdReport.asPublicReport()
-        } else {
-            null
-        }
+        internalPmdReport.asPublicReport()
     } catch (   // | FileNotFoundException | SAXException | ParserConfigurationException
         e: JAXBException
     ) {

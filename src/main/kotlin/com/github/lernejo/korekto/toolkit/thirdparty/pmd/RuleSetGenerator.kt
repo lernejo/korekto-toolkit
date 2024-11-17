@@ -75,54 +75,44 @@ data class Rule private constructor(
         )
 
         @JvmStatic
-        @JvmOverloads
         fun buildDependencyInversionRule() = Rule(
             LooseCouplingRule::class.java,
             "Dependency inversion principle not respected: type `{0}` should be replaced by its matching interface"
         )
 
         @JvmStatic
-        @JvmOverloads
         fun buildUnusedLocalVariableRule() = Rule(
             UnusedLocalVariableRule::class.java,
             "Unused local variable: `{0}`"
         )
 
         @JvmStatic
-        @JvmOverloads
         fun buildUnusedPrivateFieldRule() = Rule(
             UnusedPrivateFieldRule::class.java,
             "Unused private field: `{0}`"
         )
 
         @JvmStatic
-        @JvmOverloads
         fun buildUnusedPrivateMethodRule() = Rule(
             UnusedPrivateMethodRule::class.java,
             "Unused private method: `{0}`"
         )
 
         @JvmStatic
-        @JvmOverloads
         fun buildClassNamingConventionsRule() = Rule(
             ClassNamingConventionsRule::class.java,
             "Class name should follow UpperCamelCase convention, but `{1}` found instead"
         )
 
         @JvmStatic
-        @JvmOverloads
         fun buildMethodNamingConventionsRule() = Rule(
             MethodNamingConventionsRule::class.java,
             "Method name should follow lowerCamelCase convention, but `{1}` found instead"
         )
 
         @JvmStatic
-        @JvmOverloads
         fun buildEmptyControlStatementRule() = Rule(
             EmptyControlStatementRule::class.java
         )
-
-
-
     }
 }
