@@ -68,6 +68,7 @@ class GradingJobLauncher : Callable<Int> {
                 0
             }
             slug.isPresent -> {
+                System.setProperty("github_user", slug.get())
                 val repoUrl = grader.slugToRepoUrl(slug.get())
                 val configuration = GradingConfiguration(repoUrl, "", "")
                 val branch = System.getProperty("git.branch")

@@ -1,6 +1,7 @@
 package com.github.lernejo.korekto.toolkit.thirdparty.git
 
 import com.github.lernejo.korekto.toolkit.WarningException
+import com.github.lernejo.korekto.toolkit.thirdparty.github.GitHubAuthenticationHolder
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.api.errors.GitAPIException
@@ -8,7 +9,6 @@ import org.eclipse.jgit.api.errors.InvalidRemoteException
 import org.eclipse.jgit.api.errors.JGitInternalException
 import org.eclipse.jgit.api.errors.NoHeadException
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.io.UncheckedIOException
@@ -20,7 +20,6 @@ object GitRepository {
     private val LOGGER = LoggerFactory.getLogger(GitRepository::class.java)
 
     private val URI_WITH_CRED_PATTERN = Pattern.compile("(?<protocol>https?://)(?<cred>[^@]+)@(?<hostAndMore>.+)")
-    private val URI_WITHOUT_CRED_PATTERN = Pattern.compile("(?<protocol>https?://)(?<hostAndMore>.+)")
 
     data class Creds(val uriWithoutCred: String, val username: String?, val password: String?)
 
@@ -51,42 +50,22 @@ object GitRepository {
         }
     }
 
-    private fun insertToken(uri: String, token: String): String {
-        val uriCredMatcher = URI_WITH_CRED_PATTERN.matcher(uri)
-        return if (uriCredMatcher.matches()) {
-            uri
-        } else {
-            val uriMatcher = URI_WITHOUT_CRED_PATTERN.matcher(uri)
-            if (uriMatcher.matches()) {
-                uriMatcher.group("protocol") + "x-access-token:" + token + "@" + uriMatcher.group("hostAndMore")
-            } else {
-                uri
-            }
-        }
-    }
-
     @JvmStatic
     fun clone(uri: String, path: Path): Git {
-        val creds = extractCredParts(uri)
-
         return try {
             val cloneCommand = Git.cloneRepository()
                 .setURI(uri)
                 .setDirectory(path.toFile())
-            val token = System.getProperty("github_token")
-            if (creds.username != null) {
-                cloneCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(creds.username, creds.password))
-            } else if (token != null) {
-                cloneCommand
-                    .setURI(insertToken(uri, token))
-                    .setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
-            }
+            cloneCommand
+                .setURI(uri)
+            GitHubAuthenticationHolder.auth.configure(cloneCommand)
+
             val git = cloneCommand
                 .setCloneAllBranches(true)
                 .call()
             LOGGER.debug("Cloning in: " + git.repository.directory)
             git
-        } catch(e: InvalidRemoteException) {
+        } catch (e: InvalidRemoteException) {
             throw WarningException("Unable to clone in ${path.toAbsolutePath()}: Missing or inaccessible repository", e)
         } catch (e: GitAPIException) {
             throw buildWarningException(path, e)
@@ -122,38 +101,12 @@ object GitRepository {
         }
     }
 
-    internal fun extractCreds(uri: String): Creds {
-        val token = System.getProperty("github_token")
-        return if (token != null) {
-            Creds(uri, token, "")
-        } else {
-            extractCredParts(uri)
-        }
-    }
-
     @JvmStatic
-    fun forcePull(git: Git, uri: String) {
-        val creds = extractCreds(uri)
-
-        try {
-            try {
-                forcePull(git, creds, "origin/master")
-            } catch (e: JGitInternalException) {
-                forcePull(git, creds, "origin/main")
-            }
-        } catch (e: GitAPIException) {
-            throw RuntimeException(e)
-        }
-    }
-
-    fun forcePull(git: Git, creds: Creds, ref: String) {
+    fun forcePull(git: Git) {
         val fetchCommand = git.fetch()
             .setForceUpdate(true)
-        if (creds.username != null) {
-            fetchCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(creds.username, creds.password))
-        }
-        fetchCommand
-            .call()
+        GitHubAuthenticationHolder.auth.configure(fetchCommand)
+        fetchCommand.call()
         git.reset().setMode(ResetCommand.ResetType.HARD).call()
         git.clean().setCleanDirectories(true).setForce(true).call()
         git.pull().call()
