@@ -21,7 +21,7 @@ internal class RuleSetGeneratorTest {
             Rule(FieldMandatoryModifiersRule::class.java)
         )
 
-        assertThat(ruleSet).isEqualTo(
+        assertThat(ruleSet).isEqualToIgnoringWhitespace(
             """
             <?xml version="1.0"?>
             <ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

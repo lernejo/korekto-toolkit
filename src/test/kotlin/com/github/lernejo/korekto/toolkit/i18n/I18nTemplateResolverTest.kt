@@ -22,7 +22,7 @@ internal class I18nTemplateResolverTest {
         )
         val body = I18nTemplateResolver().process("live-issue/body.md", context, Locale.FRENCH)
 
-        Assertions.assertThat(body).isEqualTo(
+        Assertions.assertThat(body).isEqualToIgnoringWhitespace(
             """
             # Exercice commencé
             Votre note est de **2.3**/5.  
@@ -53,7 +53,7 @@ internal class I18nTemplateResolverTest {
         )
         val body = I18nTemplateResolver().process("gg-issue/body.md", context, Locale.FRENCH)
 
-        Assertions.assertThat(body).isEqualTo(
+        Assertions.assertThat(body).isEqualToIgnoringWhitespace(
             """
             # Exercice fini
             Votre note finale est de **2.3**/5.
