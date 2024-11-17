@@ -8,8 +8,9 @@ internal class ExerciseClonerTest {
     @Test
     @EnabledIfSystemProperty(named = "github_token", matches = ".+")
     internal fun sample_clone() {
-        var ex = ExerciseCloner(Paths.get("target/repositories")).gitClone(
-            "https://github.com/lernejo/git_training"
+        System.setProperty("github_user", "ledoyen")
+        val ex = ExerciseCloner(Paths.get("target/repositories")).gitClone(
+            "https://github.com/ledoyen/spring-todo-list"
         )
         println(ex)
     }

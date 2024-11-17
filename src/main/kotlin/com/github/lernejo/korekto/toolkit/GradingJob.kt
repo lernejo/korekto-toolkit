@@ -68,6 +68,7 @@ class GradingJob(
         val failedSlugs = mutableListOf<String>()
         val jobDurations = mutableListOf<Long>()
         for ((jobIndex, userSlug) in userSlugs.withIndex()) {
+            System.setProperty("github_user", userSlug)
             val gradingConfiguration = GradingConfiguration(
                 repoUrlBuilder(userSlug),
                 "",

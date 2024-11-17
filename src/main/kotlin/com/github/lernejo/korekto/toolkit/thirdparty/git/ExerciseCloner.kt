@@ -38,7 +38,7 @@ class ExerciseCloner(private val workspace: Path) {
             if (potentialRepo.isPresent) {
                 if (!forcePull) {
                     try {
-                        forcePull(potentialRepo.get(), uri)
+                        forcePull(potentialRepo.get())
                     } catch (e: RuntimeException) {
                         throw RuntimeException("Could not pull -f repository: $path ($uri), ${e.message}", e)
                     }
