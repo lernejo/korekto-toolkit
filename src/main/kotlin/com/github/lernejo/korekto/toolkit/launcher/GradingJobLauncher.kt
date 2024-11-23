@@ -93,7 +93,7 @@ class GradingJobLauncher : Callable<Int> {
         .addStep("display") { _ -> println(counter.incrementAndGet()) }
         .addStep("grading", grader)
         .addStoreResultsLocallyStep()
-        .addUpsertGitHubIssuesStep(Locale.FRENCH, grader::deadline, dryRun)
+        .addUpsertGitHubIssuesStep(Locale.FRENCH, grader::deadline, dryRun = true)
 
     private fun buildLocalGradingJob(grader: Grader<GradingContext>, branch: String?, localRepo: Optional<Path>, reportPath: Optional<Path>) = GradingJob()
         .addCloneStep(forcePull, branch, localRepo.getOrNull()?.absolute())
@@ -104,7 +104,7 @@ class GradingJobLauncher : Callable<Int> {
     private fun buildContainerizedGradingJob(grader: Grader<GradingContext>) = GradingJob()
         .addCloneStep(forcePull)
         .addStep("grading", grader)
-        .addUpsertGitHubIssuesStep(Locale.FRENCH, grader::deadline)
+        .addUpsertGitHubIssuesStep(Locale.FRENCH, grader::deadline, dryRun = true)
         .addSendStep()
 
     companion object {
