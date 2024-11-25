@@ -35,7 +35,7 @@
         <amqp-client.version>5.23.0</amqp-client.version>
         <juniversalchardet.version>2.5.0</juniversalchardet.version>
         <testcontainers.version>1.20.4</testcontainers.version>
-        <jjwt.version>0.12.3</jjwt.version>
+        <jjwt.version>0.12.6</jjwt.version>
         <bouncycastle.version>1.79</bouncycastle.version>
 
         <junit-jupiter.version>5.11.3</junit-jupiter.version>
