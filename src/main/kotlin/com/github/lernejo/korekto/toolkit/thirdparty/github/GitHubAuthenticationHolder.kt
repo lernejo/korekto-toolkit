@@ -60,7 +60,7 @@ data class TokenGitHubAuthentication(val token: String) : GitHubAuthentication {
 
     override fun <R, C : GitCommand<R>> configure(command: TransportCommand<in C, R>) {
         command
-            .setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
+            .setCredentialsProvider(UsernamePasswordCredentialsProvider("x-access-token", token))
     }
 
     override fun configure(conn: HttpURLConnection) {
