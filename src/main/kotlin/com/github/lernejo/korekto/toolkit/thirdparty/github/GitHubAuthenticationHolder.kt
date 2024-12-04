@@ -64,7 +64,7 @@ data class TokenGitHubAuthentication(val token: String) : GitHubAuthentication {
     }
 
     override fun configure(conn: HttpURLConnection) {
-        conn.setRequestProperty("Authorization", "token $token")
+        conn.setRequestProperty("Authorization", "Bearer $token")
     }
 
     override fun configure(builder: GitHubBuilder) {
