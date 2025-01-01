@@ -39,7 +39,7 @@
         <bouncycastle.version>1.79</bouncycastle.version>
 
         <junit-jupiter.version>5.11.4</junit-jupiter.version>
-        <assertj-core.version>3.27.0</assertj-core.version>
+        <assertj-core.version>3.27.1</assertj-core.version>
         <logback-classic.version>1.5.15</logback-classic.version>
 
         <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
