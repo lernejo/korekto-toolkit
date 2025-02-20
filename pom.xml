@@ -34,7 +34,7 @@
         <jaxb.version>4.0.5</jaxb.version>
         <amqp-client.version>5.25.0</amqp-client.version>
         <juniversalchardet.version>2.5.0</juniversalchardet.version>
-        <testcontainers.version>1.20.4</testcontainers.version>
+        <testcontainers.version>1.20.5</testcontainers.version>
         <jjwt.version>0.12.6</jjwt.version>
         <bouncycastle.version>1.80</bouncycastle.version>
 
