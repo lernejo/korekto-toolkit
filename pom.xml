@@ -36,7 +36,7 @@
         <juniversalchardet.version>2.5.0</juniversalchardet.version>
         <testcontainers.version>1.21.1</testcontainers.version>
         <jjwt.version>0.12.6</jjwt.version>
-        <bouncycastle.version>1.80</bouncycastle.version>
+        <bouncycastle.version>1.81</bouncycastle.version>
 
         <junit-jupiter.version>5.13.0</junit-jupiter.version>
         <assertj-core.version>3.27.3</assertj-core.version>
