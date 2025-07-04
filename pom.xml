@@ -38,7 +38,7 @@
         <jjwt.version>0.12.6</jjwt.version>
         <bouncycastle.version>1.81</bouncycastle.version>
 
-        <junit-jupiter.version>5.13.2</junit-jupiter.version>
+        <junit-jupiter.version>5.13.3</junit-jupiter.version>
         <assertj-core.version>3.27.3</assertj-core.version>
         <logback-classic.version>1.5.18</logback-classic.version>
 
