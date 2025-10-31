@@ -20,7 +20,7 @@
         <kotlin.version>2.2.21</kotlin.version>
 
         <slf4j.version>2.0.17</slf4j.version>
-        <jackson.version>2.19.2</jackson.version>
+        <jackson.version>2.20.1</jackson.version>
         <picocli.version>4.7.7</picocli.version>
         <jgit.version>7.4.0.202509020913-r</jgit.version>
         <commonmark.version>0.17.0</commonmark.version>
