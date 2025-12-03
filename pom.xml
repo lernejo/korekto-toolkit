@@ -32,7 +32,7 @@
         <pmd.version>7.19.0</pmd.version>
         <jakarta.xml.bind-api.version>4.0.4</jakarta.xml.bind-api.version>
         <jaxb.version>4.0.6</jaxb.version>
-        <amqp-client.version>5.27.1</amqp-client.version>
+        <amqp-client.version>5.28.0</amqp-client.version>
         <juniversalchardet.version>2.5.0</juniversalchardet.version>
         <testcontainers.version>2.0.2</testcontainers.version>
         <jjwt.version>0.13.0</jjwt.version>
